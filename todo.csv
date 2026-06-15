@@ -1,0 +1,23 @@
+id,priority,phase,status,task,goal_setpoint,acceptance,boundary,evidence,dependencies,risk,notes
+TODO-001,P0,M1,done,建立 RebarSmart 证据索引,把 P0 钢筋生成所需 PDF/CATNls/INI/DLL/IDA 证据入口整理成可开发索引,新增 docs/rebarsmart/00_证据索引.md 且覆盖 P0 8 个命令和公共参数资源,只写文档不写 C++,"RebarSmart_DrwToolKit2022X 20260604; docs/ui/09_钢筋页签命令与RebarSmart算法映射.md",M0,证据路径多且命名不统一,已完成证据入口和 IDA MCP 命令入口复核
+TODO-002,P0,M1,done,GenerateRebarData 字段地图,把 RebarSmart 公共参数结构落成字段地图和 DTO 草案,新增 docs/rebarsmart/01_GenerateRebarData字段地图.md,只写文档不写 C++,"RebarSmart3DE_逆向分析与OCCT重建方案.md; ResourceRebarSmart/*.ini; docs/rebarsmart/01_GenerateRebarData字段地图.md",TODO-001,字段单位可能混合 m/mm,已完成公共 DTO 草案和字段置信/GAP 标记
+TODO-003,P0,M1,next,定数钢筋专项证据文档,把用户截图/PDF/CATNls/INI/IDA 证据映射到 FixNumberPanel,新增 docs/ui/12_定数钢筋参数面板与证据.md,只写文档不写 C++,"GenerateRebarFixNumberDlg.CATNls; GenerateRebarFixNumber.ini; 用户 3DE 截图; docs/rebarsmart/01_GenerateRebarData字段地图.md",TODO-002,截图字段可能不完整,缺口明确记录
+TODO-004,P0,M1,pending,定距钢筋证据补全审计,复查现有定距文档是否满足新 TS_RS 路线,更新 docs/ui/08_定距钢筋参数面板与IDA证据.md,只改文档,"docs/ui/08_定距钢筋参数面板与IDA证据.md; GenerateRebarFixDistance.ini",TODO-001,旧路线残留,清除 VisualTS 误导口径
+TODO-005,P0,M2,pending,纯算法开发计划,为 SpaceListParser/Distribution/ZoneCalculator 写实现计划和测试矩阵,新增 docs/architecture/01_纯算法层实现计划.md,不写 C++,"AfrRebarCore 关键函数索引; RebarSmart3DE_逆向分析与OCCT重建方案.md",TODO-002,反编译伪代码可能有误,先用测试矩阵约束
+TODO-006,P0,M2,pending,初始化 app 工程骨架,创建 TS_RS/app Qt6+OCCT CMake 骨架和最小测试,能 configure/build/test,只在 【TS_RS】/app 内开发,"docs/architecture/00_系统架构总览.md; docs/ui/11_UI可开发规格.md",TODO-005,依赖路径和本机环境差异,先最小骨架
+TODO-007,P0,M2,pending,实现 SpaceListParser,实现不等距间距列表解析并测试,CTest 通过且异常格式有诊断,只改 app/src/rebarsmart 与 tests,"GenerateRebarData 字段地图; AfrRebarCore ParseSpaceList 证据",TODO-006,单位和中文符号,先记录并测试
+TODO-008,P0,M2,pending,实现 PrioritySpaceDistributor,实现 CalSectionCount 和 7 种 mode 分布测试,CTest 通过,只改纯算法层,"GetPointLength_ProiriySpace; CalSectionCount",TODO-007,边界行为不确定,用 gap 标记低置信
+TODO-009,P0,M2,pending,实现 PriorityListDistributor,实现间距列表分布测试,CTest 通过,只改纯算法层,"GetPointLength_ProiriyList; ParseSpaceList",TODO-008,列表超长/不足处理需确认,用测试锁定当前理解
+TODO-010,P0,M2,pending,实现 GuideCurveZoneCalculator,实现分区模式计算测试,CTest 通过,只改纯算法层,"CalGuideCurveZoneOnGuideCurve",TODO-009,闭合曲线边界复杂,先覆盖主路径
+TODO-011,P0,M3,pending,IGeometryEngine 接口设计,定义生成器可依赖的几何抽象接口和 mock,纯算法/生成器不直接依赖 OCCT,只改接口与测试,"docs/architecture/00_系统架构总览.md",TODO-010,接口过宽或过窄,先服务 FixDistance/FixNumber
+TODO-012,P0,M3,pending,OcctGeometryEngine P0,实现曲线长度/按弧长取点/切线/组装线,CTest 通过,只改 geometry/occt,"OCCT docs; RebarSmart 3DE->OCCT 对照",TODO-011,OCCT 容差差异,记录容差
+TODO-013,P0,M3,pending,FixDistanceGenerator P0,用 IGeometryEngine 生成简单定距钢筋中心线,单元/集成测试通过,不做 UI 不做 Detail,"docs/ui/08_定距钢筋参数面板与IDA证据.md",TODO-012,复杂字段多,先主路径但字段不删除
+TODO-014,P0,M3,pending,FixNumberGenerator P0,用 IGeometryEngine 生成简单定数钢筋中心线,单元/集成测试通过,不做 UI 不做 Detail,"docs/ui/12_定数钢筋参数面板与证据.md",TODO-013,间距反算边界,用截图和 CATNls 约束
+TODO-015,P0,M4,pending,Qt6 OCCT 主窗口骨架,实现 MainWindow/Viewer/左树/右Dock/底部Dock 空壳,可启动并显示空 Viewer,只改 app ui/presentation,"docs/ui/11_UI可开发规格.md",TODO-006,UI 过度打磨,先功能壳
+TODO-016,P0,M4,pending,STEP 导入与水泥灰显示,打开 STEP/STP 并统一水泥灰显示,手动/截图验证,只改 step/presentation,"docs/ui/05_OCCT视图交互与选择设计.md",TODO-015,STEP 样本差异,先真实样本 smoke
+TODO-017,P0,M4,pending,Viewer 选择系统,支持点/边/面/实体选择和红色选中/洋红高亮,集成测试或手工记录,只改 presentation/occ,"docs/ui/05_OCCT视图交互与选择设计.md",TODO-016,OCCT selection mode 细节,记录诊断
+TODO-018,P0,M4,pending,FixDistancePanel UI,右侧 Dock 对齐 RebarSmart 定距面板字段并可提交预览,UI 不写算法,只改 UI 调 command/service,"docs/ui/08_定距钢筋参数面板与IDA证据.md; docs/ui/10_钢筋创建Dock面板RebarSmart一致性规则.md",TODO-013,字段太多,保留字段槽位
+TODO-019,P0,M5,pending,Detail 包证据索引,整理 Detail.xml/DetailNN.stl XML 字段和样本,新增 docs/detail/00_Detail包证据索引.md,只写文档,"老图石 Detail 包样本; docs/adr/ADR-0001_STEP_only_RebarSmart_Detail路线.md",TODO-001,样本不足,列缺口
+TODO-020,P0,M5,pending,DetailPackageReader P0,读取旧 Detail 包统计视图/线/钢筋组/表格,测试通过,只改 drawing/detail,"docs/detail/00_Detail包证据索引.md",TODO-019,XML 字段复杂,先读不改
+TODO-021,P0,M5,pending,DetailPackageWriter round-trip,Reader->Writer 输出结构数量一致,测试通过,只改 drawing/detail,"DetailPackageReader P0",TODO-020,字段顺序和默认值,先保守保留
+TODO-022,P0,M5,pending,极简 Detail 包生成,生成 Detail.xml + Detail01.stl XML 一条 section-line,人工 CAD 插件 autoin 验证记录,只改 export/detail,"DetailPackageWriter round-trip",TODO-021,需要 AutoCAD 插件环境,无环境则 blocked

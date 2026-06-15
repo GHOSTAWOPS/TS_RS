@@ -1,0 +1,39 @@
+# TS_RS
+
+TS_RS 是新的独立钢筋建模程序方向。
+
+核心路线：
+
+```text
+Qt6 做独立桌面 UI。
+OCCT 做 STEP/STP 导入、三维显示、选择和几何计算。
+RebarSmart 作为钢筋生成逻辑的证据源。
+老图石 / VisualTS 只作为 Detail 包、工程图字段、CAD 插件兼容证据源。
+```
+
+硬边界：
+
+```text
+不调用 RebarSmart DLL。
+不调用 VisualTS EXE / DLL。
+不依赖 3DE / CAA / CATIA / ACIS / HOOPS / Codejock 商业运行时。
+不迁入父目录旧 rebar 业务实现作为主线。
+```
+
+当前阶段：
+
+```text
+M1：RebarSmart 证据与参数模型。
+当前 next：见 todo.csv。
+```
+
+关键入口：
+
+```text
+docs/adr/ADR-0001_STEP_only_RebarSmart_Detail路线.md
+docs/architecture/00_系统架构总览.md
+docs/roadmap/00_路线图.md
+docs/rebarsmart/00_证据索引.md
+docs/rebarsmart/01_GenerateRebarData字段地图.md
+todo.csv
+```

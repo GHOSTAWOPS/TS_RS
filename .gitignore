@@ -1,0 +1,34 @@
+# Build outputs
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Testing/
+
+# IDE / agent local state
+.vs/
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.user
+*.suo
+
+# Runtime / generated files
+*.log
+*.tmp
+*.bak
+*.zip
+*.7z
+*.rar
+
+# Windows accidental files
+Thumbs.db
+Desktop.ini
+nul
+
+# Future large local evidence or exports
+samples/local/
+exports/
+dist/
