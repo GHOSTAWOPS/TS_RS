@@ -35,6 +35,7 @@ docs/architecture/00_系统架构总览.md
 docs/architecture/01_纯算法层实现计划.md
 docs/architecture/02_TODO-006_app工程骨架实现记录.md
 docs/roadmap/00_路线图.md
+docs/roadmap/01_长期Goal执行目标.md
 docs/rebarsmart/00_证据索引.md
 docs/rebarsmart/01_GenerateRebarData字段地图.md
 todo.csv
