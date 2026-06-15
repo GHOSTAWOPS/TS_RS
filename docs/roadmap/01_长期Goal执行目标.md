@@ -103,51 +103,47 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-006A：
-  旧实现项目 Qt / OCCT 可复用审计。
+TODO-007：
+  实现 SpaceListParser。
 ```
 
 目标：
 
 ```text
-审计【图石钢筋1比1复刻】中哪些 Qt / OCCT 工程零件可复用。
+进入 RebarSmart 纯算法层，实现不等距间距列表解析。
 ```
 
 输出：
 
 ```text
-新增 docs/architecture/03_旧实现项目QtOCCT可复用审计.md
+app/src/rebarsmart 下的 SpaceListParser 实现。
+app/tests/rebarsmart 下的解析测试。
+必要的实现记录 / build report / todo.csv 更新。
 ```
 
-必须分三类：
+边界：
 
 ```text
-A. 可直接复用
-   低耦合、无钢筋业务路线污染，可直接迁入或按路径调整。
-
-B. 可改造复用
-   工程经验有价值，但需要改造成 TS_RS 的接口边界。
-
-C. 禁止迁入
-   旧路线中直接用 OCCT 造钢筋、或会污染 RebarSmart 证据主线的代码。
+只改 app/src/rebarsmart 与 app/tests/rebarsmart。
+不接 Qt。
+不接 OCCT。
+不接 Detail。
+不实现定距 / 定数钢筋生成器。
 ```
 
-审计对象优先级：
+TODO-006A 审计已完成：
 
 ```text
-1. CMake / 依赖发现 / Qt / OCCT 配置。
-2. STEP / STP 导入。
-3. AIS Viewer / Qt 窗口嵌入。
-4. 选择 / 高亮 / 颜色 / 显示模式。
-5. XCAF / TopoDS 遍历。
-6. 剖切 / 视角 / fit / camera。
-7. 稳定 ID / TopologyBinding。
-8. rebar 业务生成器，必须只用于识别禁止迁入边界。
+docs/architecture/03_旧实现项目QtOCCT可复用审计.md
+
+结论：
+  旧实现项目可作为 Qt / OCCT 工程零件库。
+  旧实现项目不能作为 TS_RS 钢筋生成业务来源。
 ```
 
 ## 推荐后续节点
 
-TODO-006A 完成后：
+当前 next：
 
 ```text
 TODO-007：
@@ -196,8 +192,9 @@ xhigh 只能 review，不能修改；主流程 agent 负责修改。
 子代理完成后必须关闭。
 完成后更新文档、todo.csv，运行验证，commit，打 annotated tag，push。
 
-当前从 TODO-006A 开始：
-只读审计旧实现项目【图石钢筋1比1复刻】的 Qt/OCCT 可复用部分，
-输出 A 可直接复用 / B 可改造复用 / C 禁止迁入清单，
-不搬代码。
+当前从 TODO-007 开始：
+实现 SpaceListParser。
+只改 app/src/rebarsmart 与 app/tests/rebarsmart。
+先补测试，再实现。
+不接 Qt，不接 OCCT，不接 Detail。
 ```
