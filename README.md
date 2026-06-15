@@ -23,7 +23,7 @@ RebarSmart 作为钢筋生成逻辑的证据源。
 当前阶段：
 
 ```text
-M1：RebarSmart 证据与参数模型。
+M2：纯算法层 / 工程骨架。
 当前 next：见 todo.csv。
 ```
 
@@ -32,6 +32,8 @@ M1：RebarSmart 证据与参数模型。
 ```text
 docs/adr/ADR-0001_STEP_only_RebarSmart_Detail路线.md
 docs/architecture/00_系统架构总览.md
+docs/architecture/01_纯算法层实现计划.md
+docs/architecture/02_TODO-006_app工程骨架实现记录.md
 docs/roadmap/00_路线图.md
 docs/rebarsmart/00_证据索引.md
 docs/rebarsmart/01_GenerateRebarData字段地图.md

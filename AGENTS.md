@@ -18,9 +18,40 @@ RebarSmart 证据驱动钢筋生成逻辑复刻。
 不要调用 RebarSmart DLL。
 不要调用 VisualTS EXE / DLL。
 不要依赖 3DE / CAA / CATIA / ACIS / HOOPS / Codejock 商业运行时。
-不要迁入父目录旧 rebar 业务代码作为 TS_RS 主线。
+不要迁入旧实现项目【图石钢筋1比1复刻】里的 rebar 业务代码作为 TS_RS 主线。
 不要让 domain/rebar 依赖 TopoDS / AIS / BRep 等 OCCT 细节。
 不要用“OCCT 能做到什么”替代“RebarSmart 参数和算法证据是什么”。
+```
+
+## 旧实现项目参考边界
+
+```text
+旧实现项目：
+  C:\Users\ghost\Desktop\reverse_engineering\【03】图石软件\【图石钢筋1比1复刻】
+
+新项目：
+  C:\Users\ghost\Desktop\reverse_engineering\【03】图石软件\【TS_RS】
+```
+
+允许参考旧实现项目：
+
+```text
+CMake 查找 Qt / OCCT。
+STEP / STP 导入。
+AIS Viewer。
+选择 / 高亮。
+XCAF / TopoDS 遍历。
+剖切 / 颜色 / 稳定 ID 思路。
+```
+
+禁止迁入旧实现项目：
+
+```text
+直接用 OCCT 生成钢筋的 rebar 业务逻辑。
+EdgeToRebarFactory。
+FaceRebarGenerator。
+PolylineRebarGenerator。
+RebarCreationCommandService 中直接造钢筋的业务流程。
 ```
 
 ## 执行规则
