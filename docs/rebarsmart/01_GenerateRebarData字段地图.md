@@ -670,7 +670,7 @@ RebarSmart 弹窗改为 TS_RS 右侧 Dock。
 ## 对后续开发的要求
 
 ```text
-1. TODO-005 纯算法开发计划必须引用本文档。
+1. TODO-005 纯算法开发计划已引用本文档。
 2. SpaceListParser 只处理 `distribution.spacingList` 一类字符串，不处理 UI。
 3. PrioritySpaceDistributor 只处理 `distribution.priorityMode` 和首尾端距等纯数学输入。
 4. 生成器 DTO 必须拆成公共 GenerateRebarData + 专属 Params。
@@ -681,14 +681,13 @@ RebarSmart 弹窗改为 TS_RS 右侧 Dock。
 ## 下一步
 
 ```text
-TODO-005：
-  纯算法开发计划。
+TODO-006：
+  初始化 app 工程骨架。
 
-重点确认：
-  SpaceListParser、PrioritySpaceDistributor、PriorityCountDistributor、
-  PriorityListDistributor、GuideCurveZoneCalculator、GuideSurfaceOffsetCalculator
-  的输入 / 输出 / 单位 / GAP / 测试矩阵。
+执行边界：
+  只创建最小 CMake / CTest 和目录骨架。
+  不实现 RebarSmart 算法。
 
-边界：
-  只写计划，不写 C++。
+计划入口：
+  docs/architecture/01_纯算法层实现计划.md
 ```

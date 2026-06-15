@@ -38,9 +38,12 @@ FixDistanceGenerator：
   只依赖 GenerateRebarData + FixDistanceSelectionContext + IGeometryEngine。
   不直接依赖 OCCT / AIS / TopoDS。
 
-TODO-005：
-  必须把 UpdateRebarCountSpaceMargin、UpdateGuideCurveZone、
+TODO-005 已完成：
+  已把 UpdateRebarCountSpaceMargin、UpdateGuideCurveZone、
   GetGuideSurfaceOffestDistance、FormGuideCurveZoneArray 拆成纯算法测试矩阵。
+
+TODO-006：
+  下一步只初始化 app 工程骨架，不实现定距算法。
 ```
 
 ## 证据来源
@@ -845,17 +848,13 @@ FixDistanceGenerator 后续不能直接 include OCCT / AIS 类型。
 ## 下一步
 
 ```text
-TODO-005：
-  纯算法开发计划。
+TODO-005 已完成：
+  docs/architecture/01_纯算法层实现计划.md
 
-重点：
-  把本文档中的 RebarSmart 证据拆成可单测算法模块：
-    SpaceListParser
-    PrioritySpaceDistributor
-    PriorityCountDistributor
-    PriorityListDistributor
-    GuideCurveZoneCalculator
-    GuideSurfaceOffsetCalculator
+下一步 TODO-006：
+  初始化 app 工程骨架。
 
-先写计划和测试矩阵，不直接写 C++。
+边界：
+  只创建最小 CMake / CTest 和目录骨架。
+  不实现 SpaceListParser、分布算法或定距钢筋生成器。
 ```
