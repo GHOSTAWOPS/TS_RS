@@ -78,7 +78,8 @@ RebarSmart 作为钢筋生成逻辑证据源。
 3. 读该任务 evidence 指向的文档。
 4. 明确本轮边界：只读 / 文档 / 代码 / 测试 / 构建。
 5. 只完成一个 next 节点。
-6. 不自动进入下一个节点，除非用户明确说继续。
+6. 节点验证、review、commit、tag、push 完成后，自动进入下一个 next。
+7. 直到遇到明确阻塞条件才停止并汇报。
 ```
 
 如果当前 next 是代码、测试或构建脚本节点：
@@ -103,21 +104,21 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-007：
-  实现 SpaceListParser。
+TODO-008：
+  实现 PrioritySpaceDistributor / PriorityCountDistributor。
 ```
 
 目标：
 
 ```text
-进入 RebarSmart 纯算法层，实现不等距间距列表解析。
+继续 RebarSmart 纯算法层，实现间距优先 / 根数优先分布计算。
 ```
 
 输出：
 
 ```text
-app/src/rebarsmart 下的 SpaceListParser 实现。
-app/tests/rebarsmart 下的解析测试。
+app/src/rebarsmart 下的 distributor 实现。
+app/tests/rebarsmart 下的分布计算测试。
 必要的实现记录 / build report / todo.csv 更新。
 ```
 
@@ -146,14 +147,15 @@ docs/architecture/03_旧实现项目QtOCCT可复用审计.md
 当前 next：
 
 ```text
-TODO-007：
-  实现 SpaceListParser。
+TODO-008：
+  实现 PrioritySpaceDistributor / PriorityCountDistributor。
 
 边界：
   只改 app/src/rebarsmart 与 app/tests/rebarsmart。
   不接 OCCT。
   不接 Qt。
-  不实现定距钢筋生成器。
+  不接 Detail。
+  不实现定距 / 定数钢筋生成器。
 ```
 
 中期顺序：
