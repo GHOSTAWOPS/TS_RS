@@ -681,10 +681,14 @@ RebarSmart 弹窗改为 TS_RS 右侧 Dock。
 ## 下一步
 
 ```text
-TODO-003：
-  定数钢筋专项证据文档。
+TODO-005：
+  纯算法开发计划。
 
 重点确认：
-  FixNumberPanel 的 RebarSmart 弹窗字段、
-  根数 / 间距 / 保护层 / 布筋区间 / 穿孔 / 延长 / 弯钩的 UI 对应关系。
+  SpaceListParser、PrioritySpaceDistributor、PriorityCountDistributor、
+  PriorityListDistributor、GuideCurveZoneCalculator、GuideSurfaceOffsetCalculator
+  的输入 / 输出 / 单位 / GAP / 测试矩阵。
+
+边界：
+  只写计划，不写 C++。
 ```
