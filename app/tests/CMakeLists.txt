@@ -52,3 +52,25 @@ target_link_libraries(tsrs_priority_list_distributor_tests
 )
 
 add_test(NAME tsrs_priority_list_distributor_tests COMMAND tsrs_priority_list_distributor_tests)
+
+add_executable(tsrs_guide_surface_offset_calculator_tests
+    rebarsmart/guide_surface_offset_calculator_tests.cpp
+)
+
+target_link_libraries(tsrs_guide_surface_offset_calculator_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_guide_surface_offset_calculator_tests COMMAND tsrs_guide_surface_offset_calculator_tests)
+
+add_executable(tsrs_guide_curve_zone_calculator_tests
+    rebarsmart/guide_curve_zone_calculator_tests.cpp
+)
+
+target_link_libraries(tsrs_guide_curve_zone_calculator_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_guide_curve_zone_calculator_tests COMMAND tsrs_guide_curve_zone_calculator_tests)

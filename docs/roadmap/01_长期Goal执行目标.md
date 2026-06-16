@@ -104,31 +104,32 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-010：
-  实现 GuideCurveZoneCalculator / GuideSurfaceOffsetCalculator。
+TODO-011：
+  IGeometryEngine 接口设计。
 ```
 
 目标：
 
 ```text
-继续 RebarSmart 纯算法层，实现布筋区间端距调整和布筋面偏移距离计算。
+定义生成器可依赖的几何抽象接口和 mock，
+为后续 OcctGeometryEngine P0 与 FixDistance / FixNumber 生成器做边界冻结。
 ```
 
 输出：
 
 ```text
-app/src/rebarsmart 下的 zone calculator 实现。
-app/tests/rebarsmart 下的 zone / offset 计算测试。
+app/src 下的 geometry engine 抽象接口草案。
+app/tests 下的 mock / 契约测试。
 必要的实现记录 / build report / todo.csv 更新。
 ```
 
 边界：
 
 ```text
-只改 app/src/rebarsmart 与 app/tests/rebarsmart。
+只改接口与测试。
 不接 Qt。
-不接 OCCT。
 不接 Detail。
+不实现 OcctGeometryEngine。
 不实现定距 / 定数钢筋生成器。
 ```
 
@@ -158,20 +159,26 @@ TODO-009：
 
 实现记录：
   docs/architecture/06_TODO-009_PriorityListDistributor实现记录.md
+
+TODO-010：
+  GuideSurfaceOffsetCalculator / GuideCurveZoneCalculator。
+
+实现记录：
+  docs/architecture/07_TODO-010_ZoneCalculators实现记录.md
 ```
 
 当前 next：
 
 ```text
-TODO-010：
-  实现 GuideCurveZoneCalculator / GuideSurfaceOffsetCalculator。
+TODO-011：
+  IGeometryEngine 接口设计。
 
 边界：
-  只改 app/src/rebarsmart 与 app/tests/rebarsmart。
-  不接 OCCT。
+  只改接口与测试。
   不接 Qt。
   不接 Detail。
-  不实现定距 / 定数钢筋生成器。
+  不实现 OcctGeometryEngine。
+  不实现 FixDistanceGenerator / FixNumberGenerator。
 ```
 
 中期顺序：
