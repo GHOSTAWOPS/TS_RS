@@ -61,6 +61,7 @@ add_library(tsrs_app_core STATIC
     src/rebarsmart/distribute/PriorityListDistributor.cpp
     src/rebarsmart/zone/GuideSurfaceOffsetCalculator.cpp
     src/rebarsmart/zone/GuideCurveZoneCalculator.cpp
+    src/rebarsmart/generators/FixDistanceGenerator.cpp
 )
 
 target_include_directories(tsrs_app_core

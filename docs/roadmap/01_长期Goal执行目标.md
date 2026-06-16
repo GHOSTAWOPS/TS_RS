@@ -104,21 +104,21 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-013：
-  FixDistanceGenerator P0。
+TODO-014：
+  FixNumberGenerator P0。
 ```
 
 目标：
 
 ```text
 基于已完成的 IGeometryEngine / OcctGeometryEngine P0，
-实现简单定距钢筋中心线生成器。
+实现简单定数钢筋中心线生成器。
 ```
 
 输出：
 
 ```text
-app/src/rebarsmart/generators 下的 FixDistanceGenerator P0。
+app/src/rebarsmart/generators 下的 FixNumberGenerator P0。
 app/tests 下的生成器单元/集成测试。
 必要的实现记录 / todo.csv 更新。
 ```
@@ -128,7 +128,7 @@ app/tests 下的生成器单元/集成测试。
 ```text
 不接 Qt。
 不接 Detail。
-不实现 FixNumberGenerator。
+不实现下一阶段生成器。
 不把未确认的 RebarSmart 边界行为写成确定结论。
 ```
 
@@ -176,18 +176,24 @@ TODO-012：
 
 实现记录：
   docs/architecture/09_TODO-012_OcctGeometryEngineP0实现记录.md
+
+TODO-013：
+  FixDistanceGenerator P0。
+
+实现记录：
+  docs/architecture/10_TODO-013_FixDistanceGeneratorP0实现记录.md
 ```
 
 当前 next：
 
 ```text
-TODO-013：
-  FixDistanceGenerator P0。
+TODO-014：
+  FixNumberGenerator P0。
 
 边界：
   不接 Qt。
   不接 Detail。
-  不实现 FixNumberGenerator。
+  不实现下一阶段生成器。
   不把未确认的 RebarSmart 边界行为写成确定结论。
 ```
 
