@@ -14,6 +14,7 @@ add_library(tsrs_app_core STATIC
     src/rebarsmart/space_list/SpaceListParser.cpp
     src/rebarsmart/distribute/PriorityCountDistributor.cpp
     src/rebarsmart/distribute/PrioritySpaceDistributor.cpp
+    src/rebarsmart/distribute/PriorityListDistributor.cpp
 )
 
 target_include_directories(tsrs_app_core

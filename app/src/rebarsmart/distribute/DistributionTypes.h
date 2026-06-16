@@ -12,6 +12,8 @@ inline constexpr std::string_view kDiagnosticSpacingNonPositive = "RS_SPACING_NO
 inline constexpr std::string_view kDiagnosticCountNonPositive = "RS_COUNT_NON_POSITIVE";
 inline constexpr std::string_view kDiagnosticZoneLengthInvalid = "RS_ZONE_LENGTH_INVALID";
 inline constexpr std::string_view kDiagnosticSectionCountTooLarge = "RS_SECTION_COUNT_TOO_LARGE";
+inline constexpr std::string_view kDiagnosticSpaceListEmpty = "RS_SPACE_LIST_EMPTY";
+inline constexpr std::string_view kDiagnosticPointCountTooSmall = "RS_POINT_COUNT_TOO_SMALL";
 
 struct ZoneLengths {
     double headM{0.0};
