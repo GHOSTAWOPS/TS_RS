@@ -74,3 +74,14 @@ target_link_libraries(tsrs_guide_curve_zone_calculator_tests
 )
 
 add_test(NAME tsrs_guide_curve_zone_calculator_tests COMMAND tsrs_guide_curve_zone_calculator_tests)
+
+add_executable(tsrs_geometry_engine_contract_tests
+    geometry/geometry_engine_contract_tests.cpp
+)
+
+target_link_libraries(tsrs_geometry_engine_contract_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_geometry_engine_contract_tests COMMAND tsrs_geometry_engine_contract_tests)

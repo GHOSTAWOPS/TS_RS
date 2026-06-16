@@ -104,32 +104,31 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-011：
-  IGeometryEngine 接口设计。
+TODO-012：
+  OcctGeometryEngine P0。
 ```
 
 目标：
 
 ```text
-定义生成器可依赖的几何抽象接口和 mock，
-为后续 OcctGeometryEngine P0 与 FixDistance / FixNumber 生成器做边界冻结。
+实现 IGeometryEngine 的 OCCT P0 后端能力，
+为后续 FixDistance / FixNumber 生成器提供曲线长度、按弧长取点、切线和 polyline 组装。
 ```
 
 输出：
 
 ```text
-app/src 下的 geometry engine 抽象接口草案。
-app/tests 下的 mock / 契约测试。
+app/src/geometry/occt 下的 OcctGeometryEngine P0。
+app/tests 下的 OCCT 几何实现测试。
 必要的实现记录 / build report / todo.csv 更新。
 ```
 
 边界：
 
 ```text
-只改接口与测试。
+只改 geometry/occt 及其测试。
 不接 Qt。
 不接 Detail。
-不实现 OcctGeometryEngine。
 不实现定距 / 定数钢筋生成器。
 ```
 
@@ -165,19 +164,24 @@ TODO-010：
 
 实现记录：
   docs/architecture/07_TODO-010_ZoneCalculators实现记录.md
+
+TODO-011：
+  IGeometryEngine 接口设计。
+
+实现记录：
+  docs/architecture/08_TODO-011_IGeometryEngine接口实现记录.md
 ```
 
 当前 next：
 
 ```text
-TODO-011：
-  IGeometryEngine 接口设计。
+TODO-012：
+  OcctGeometryEngine P0。
 
 边界：
-  只改接口与测试。
+  只改 geometry/occt 及其测试。
   不接 Qt。
   不接 Detail。
-  不实现 OcctGeometryEngine。
   不实现 FixDistanceGenerator / FixNumberGenerator。
 ```
 
