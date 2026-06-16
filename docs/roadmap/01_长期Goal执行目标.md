@@ -104,24 +104,23 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-016：
-  老图石 Ribbon 外壳与命令映射收口。
+TODO-020：
+  STEP 导入与水泥灰显示。
 ```
 
 目标：
 
 ```text
-根据外部评审，把 UI 外壳、P0 范围和近期 todo 顺序彻底收口。
+打开 STEP/STP，并在 OCCT Viewer 中按 TS_RS 规则统一水泥灰显示。
 ```
 
 输出：
 
 ```text
-docs/ui/13_老图石Ribbon外壳对齐规格.md
-docs/ui/14_老图石命令到RebarSmart生成器映射表.md
-docs/ui/15_RibbonLite_P0实现规格.md
-docs/roadmap/02_外部技术评审核心修正.md
-必要的 todo.csv / roadmap 更新。
+可运行的 STEP/STP 导入入口。
+统一水泥灰显示规则落到 presentation / step 相关实现。
+手动或截图验证记录。
+必要的实现记录、todo.csv / roadmap 更新。
 ```
 
 边界：
@@ -129,8 +128,8 @@ docs/roadmap/02_外部技术评审核心修正.md
 ```text
 不实现钢筋业务。
 不实现 Detail。
-不实现 STEP 导入。
-不实现点 / 边 / 面选择系统。
+不实现完整点 / 边 / 面选择系统。
+不实现 TopologyBinding 保存恢复。
 不把未确认的 RebarSmart 边界行为写成确定结论。
 ```
 
@@ -196,21 +195,50 @@ TODO-015：
 
 实现记录：
   docs/architecture/12_TODO-015_Qt6_OCCT主窗口骨架实现记录.md
+
+TODO-016：
+  老图石 Ribbon 外壳与命令映射收口。
+
+输出：
+  docs/roadmap/02_外部技术评审核心修正.md
+  docs/roadmap/03_P0A最小闭环与前置验证门禁.md
+  docs/ui/13_老图石Ribbon外壳对齐规格.md
+  docs/ui/14_老图石命令到RebarSmart生成器映射表.md
+  docs/ui/15_RibbonLite_P0实现规格.md
+
+TODO-017：
+  STEP Import + TopologyBinding Spike 计划。
+
+输出：
+  docs/step/00_STEP_TopologyBinding_spike_plan.md
+
+TODO-018：
+  Detail 包证据索引与 round-trip policy。
+
+输出：
+  docs/detail/00_Detail包证据索引.md
+  docs/detail/01_DetailXML_observed_schema.md
+  docs/detail/02_Detail_roundtrip_policy.md
+
+TODO-019：
+  RebarSmart 单位枚举默认值规则。
+
+输出：
+  docs/rebarsmart/02_单位枚举默认值规则.md
 ```
 
 当前 next：
 
 ```text
-TODO-016：
-  老图石 Ribbon 外壳与命令映射收口。
+TODO-020：
+  STEP 导入与水泥灰显示。
 
 边界：
-  只写文档 / todo。
-  不改 C++。
-  不实现 STEP 导入。
+  允许修改 step / presentation / viewer 相关代码和测试。
   不实现钢筋业务。
   不实现 Detail。
-  不实现 Viewer 选择系统。
+  不实现完整 Viewer 选择系统。
+  不实现 TopologyBinding 保存恢复。
 ```
 
 中期顺序：
@@ -229,6 +257,11 @@ TODO-016 老图石 Ribbon 外壳与命令映射收口
 TODO-017 STEP Import + TopologyBinding Spike 计划
 TODO-018 Detail 包证据索引与 round-trip policy
 TODO-019 RebarSmart 单位枚举默认值规则
+TODO-020 STEP 导入与水泥灰显示
+TODO-021 Viewer 选择系统
+TODO-022 DetailPackageReader P0
+TODO-023 DetailPackageWriter round-trip
+TODO-024 极简 Detail 包生成 + autoin 验证
 ```
 
 ## 用户可直接粘贴的 Goal 话术
