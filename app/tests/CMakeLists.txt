@@ -131,3 +131,39 @@ if(TSRS_VCPKG_INSTALLED_DIR)
     set_tests_properties(tsrs_occt_geometry_engine_tests PROPERTIES
         ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
 endif()
+
+add_executable(tsrs_main_window_skeleton_tests
+    ui/main_window_skeleton_tests.cpp
+)
+
+target_link_libraries(tsrs_main_window_skeleton_tests
+    PRIVATE
+        tsrs_ui
+)
+
+add_test(NAME tsrs_main_window_skeleton_tests COMMAND tsrs_main_window_skeleton_tests)
+
+if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
+    set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")
+    set(_tsrs_qt_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+    set_tests_properties(tsrs_main_window_skeleton_tests PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=minimal;QT_QPA_PLATFORM_PLUGIN_PATH=${_tsrs_qt_platform_plugin_path};PATH=${_tsrs_qt_runtime_path};$ENV{PATH}")
+endif()
+
+add_executable(tsrs_app_startup_smoke_tests
+    ui/app_startup_smoke_tests.cpp
+)
+
+target_link_libraries(tsrs_app_startup_smoke_tests
+    PRIVATE
+        Qt6::Core
+)
+
+add_test(NAME tsrs_app_startup_smoke_tests COMMAND tsrs_app_startup_smoke_tests)
+
+if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
+    set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")
+    set(_tsrs_qt_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+    set_tests_properties(tsrs_app_startup_smoke_tests PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=minimal;QT_QPA_PLATFORM_PLUGIN_PATH=${_tsrs_qt_platform_plugin_path};PATH=${_tsrs_qt_runtime_path};$ENV{PATH}")
+endif()

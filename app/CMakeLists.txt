@@ -8,7 +8,6 @@ project(TS_RS_App
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 if(EXISTS "D:/Work/vcpkg/installed/x64-windows")
     set(TSRS_VCPKG_INSTALLED_DIR "D:/Work/vcpkg/installed/x64-windows"
         CACHE PATH "Local vcpkg installed directory")
@@ -29,7 +28,29 @@ if(TSRS_VCPKG_INSTALLED_DIR AND EXISTS "${TSRS_VCPKG_INSTALLED_DIR}/bin")
     set(TSRS_VCPKG_RUNTIME_BIN_DIR "${TSRS_VCPKG_INSTALLED_DIR}/bin")
 endif()
 
+set(TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR)
+if(TSRS_VCPKG_INSTALLED_DIR AND EXISTS "${TSRS_VCPKG_INSTALLED_DIR}/debug/bin")
+    set(TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR "${TSRS_VCPKG_INSTALLED_DIR}/debug/bin")
+endif()
+
+set(TSRS_QT_PLATFORM_PLUGIN_PATH)
+if(TSRS_VCPKG_INSTALLED_DIR
+   AND EXISTS "${TSRS_VCPKG_INSTALLED_DIR}/Qt6/plugins/platforms")
+    set(TSRS_QT_PLATFORM_PLUGIN_PATH
+        "${TSRS_VCPKG_INSTALLED_DIR}/Qt6/plugins/platforms")
+endif()
+
+set(TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
+if(TSRS_VCPKG_INSTALLED_DIR
+   AND EXISTS "${TSRS_VCPKG_INSTALLED_DIR}/debug/Qt6/plugins/platforms")
+    set(TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH
+        "${TSRS_VCPKG_INSTALLED_DIR}/debug/Qt6/plugins/platforms")
+endif()
+
 find_package(OpenCASCADE CONFIG REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
+
+qt_standard_project_setup()
 
 if(DEFINED OpenCASCADE_INCLUDE_DIR)
     set(TSRS_OCCT_INCLUDE_DIR "${OpenCASCADE_INCLUDE_DIR}")
@@ -86,6 +107,38 @@ target_link_libraries(tsrs_geometry_occt
     PUBLIC
         tsrs_app_core
         ${TSRS_OCCT_GEOMETRY_LIBS}
+)
+
+add_library(tsrs_ui STATIC
+    src/presentation/occ/OccViewerWidget.cpp
+    src/ui/mainwindow/MainWindow.cpp
+)
+
+set_target_properties(tsrs_ui PROPERTIES AUTOMOC ON)
+
+target_include_directories(tsrs_ui
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(tsrs_ui
+    PUBLIC
+        Qt6::Widgets
+)
+
+qt_add_executable(tsrs_app
+    src/app/main.cpp
+)
+
+set_target_properties(tsrs_app PROPERTIES AUTOMOC ON)
+
+target_link_libraries(tsrs_app
+    PRIVATE
+        tsrs_ui
+)
+
+set_target_properties(tsrs_app PROPERTIES
+    WIN32_EXECUTABLE ON
 )
 
 enable_testing()

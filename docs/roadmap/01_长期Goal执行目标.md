@@ -104,30 +104,33 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-015：
-  Qt6 OCCT 主窗口骨架。
+TODO-016：
+  老图石 Ribbon 外壳与命令映射收口。
 ```
 
 目标：
 
 ```text
-实现 MainWindow / Viewer / 左树 / 右 Dock / 底部 Dock 空壳。
+根据外部评审，把 UI 外壳、P0 范围和近期 todo 顺序彻底收口。
 ```
 
 输出：
 
 ```text
-app/src/ui / app/src/presentation 下的最小 Qt6 / OCCT UI 骨架。
-必要的 smoke / build 验证。
-必要的实现记录 / todo.csv 更新。
+docs/ui/13_老图石Ribbon外壳对齐规格.md
+docs/ui/14_老图石命令到RebarSmart生成器映射表.md
+docs/ui/15_RibbonLite_P0实现规格.md
+docs/roadmap/02_外部技术评审核心修正.md
+必要的 todo.csv / roadmap 更新。
 ```
 
 边界：
 
 ```text
-不实现 STEP 导入。
 不实现钢筋业务。
 不实现 Detail。
+不实现 STEP 导入。
+不实现点 / 边 / 面选择系统。
 不把未确认的 RebarSmart 边界行为写成确定结论。
 ```
 
@@ -187,18 +190,27 @@ TODO-014：
 
 实现记录：
   docs/architecture/11_TODO-014_FixNumberGeneratorP0实现记录.md
+
+TODO-015：
+  Qt6 OCCT 主窗口骨架。
+
+实现记录：
+  docs/architecture/12_TODO-015_Qt6_OCCT主窗口骨架实现记录.md
 ```
 
 当前 next：
 
 ```text
-TODO-015：
-  Qt6 OCCT 主窗口骨架。
+TODO-016：
+  老图石 Ribbon 外壳与命令映射收口。
 
 边界：
+  只写文档 / todo。
+  不改 C++。
   不实现 STEP 导入。
   不实现钢筋业务。
   不实现 Detail。
+  不实现 Viewer 选择系统。
 ```
 
 中期顺序：
@@ -213,6 +225,10 @@ TODO-012 OcctGeometryEngine P0
 TODO-013 FixDistanceGenerator P0
 TODO-014 FixNumberGenerator P0
 TODO-015 Qt6 OCCT 主窗口骨架
+TODO-016 老图石 Ribbon 外壳与命令映射收口
+TODO-017 STEP Import + TopologyBinding Spike 计划
+TODO-018 Detail 包证据索引与 round-trip policy
+TODO-019 RebarSmart 单位枚举默认值规则
 ```
 
 ## 用户可直接粘贴的 Goal 话术
