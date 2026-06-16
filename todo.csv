@@ -13,8 +13,8 @@ TODO-010,P0,M2,done,实现 GuideCurveZoneCalculator / GuideSurfaceOffsetCalculat
 TODO-011,P0,M3,done,IGeometryEngine 接口设计,定义生成器可依赖的几何抽象接口和 mock,纯算法/生成器不直接依赖 OCCT,只改接口与测试,"docs/architecture/08_TODO-011_IGeometryEngine接口实现记录.md",TODO-010,接口过宽或过窄,已完成最小 P0 接口；xhigh review 无 Critical/Important
 TODO-012,P0,M3,done,OcctGeometryEngine P0,实现曲线长度/按弧长取点/切线/组装线,CTest 通过,只改 geometry/occt,"OCCT docs; RebarSmart 3DE->OCCT 对照",TODO-011,OCCT 容差差异,已完成直线/折线 P0；复杂 curved edge、TopologyBinding 和真实 STEP 容差继续标 GAP
 TODO-013,P0,M3,done,FixDistanceGenerator P0,用 IGeometryEngine 生成简单定距钢筋中心线,单元/集成测试通过,不做 UI 不做 Detail,"docs/ui/08_定距钢筋参数面板与IDA证据.md",TODO-012,复杂字段多,先主路径但字段不删除
-TODO-014,P0,M3,next,FixNumberGenerator P0,用 IGeometryEngine 生成简单定数钢筋中心线,单元/集成测试通过,不做 UI 不做 Detail,"docs/ui/12_定数钢筋参数面板与证据.md",TODO-013,间距反算边界,用截图和 CATNls 约束
-TODO-015,P0,M4,pending,Qt6 OCCT 主窗口骨架,实现 MainWindow/Viewer/左树/右Dock/底部Dock 空壳,可启动并显示空 Viewer,只改 app ui/presentation,"docs/ui/11_UI可开发规格.md",TODO-006,UI 过度打磨,先功能壳
+TODO-014,P0,M3,done,FixNumberGenerator P0,用 IGeometryEngine 生成简单定数钢筋中心线,单元/集成测试通过,不做 UI 不做 Detail,"docs/ui/12_定数钢筋参数面板与证据.md",TODO-013,间距反算边界,用截图和 CATNls 约束
+TODO-015,P0,M4,next,Qt6 OCCT 主窗口骨架,实现 MainWindow/Viewer/左树/右Dock/底部Dock 空壳,可启动并显示空 Viewer,只改 app ui/presentation,"docs/ui/11_UI可开发规格.md",TODO-006,UI 过度打磨,先功能壳
 TODO-016,P0,M4,pending,STEP 导入与水泥灰显示,打开 STEP/STP 并统一水泥灰显示,手动/截图验证,只改 step/presentation,"docs/ui/05_OCCT视图交互与选择设计.md",TODO-015,STEP 样本差异,先真实样本 smoke
 TODO-017,P0,M4,pending,Viewer 选择系统,支持点/边/面/实体选择和红色选中/洋红高亮,集成测试或手工记录,只改 presentation/occ,"docs/ui/05_OCCT视图交互与选择设计.md",TODO-016,OCCT selection mode 细节,记录诊断
 TODO-018,P0,M4,pending,FixDistancePanel UI,右侧 Dock 对齐 RebarSmart 定距面板字段并可提交预览,UI 不写算法,只改 UI 调 command/service,"docs/ui/08_定距钢筋参数面板与IDA证据.md; docs/ui/10_钢筋创建Dock面板RebarSmart一致性规则.md",TODO-013,字段太多,保留字段槽位

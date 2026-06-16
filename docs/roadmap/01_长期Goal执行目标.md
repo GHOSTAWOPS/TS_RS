@@ -104,31 +104,30 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-014：
-  FixNumberGenerator P0。
+TODO-015：
+  Qt6 OCCT 主窗口骨架。
 ```
 
 目标：
 
 ```text
-基于已完成的 IGeometryEngine / OcctGeometryEngine P0，
-实现简单定数钢筋中心线生成器。
+实现 MainWindow / Viewer / 左树 / 右 Dock / 底部 Dock 空壳。
 ```
 
 输出：
 
 ```text
-app/src/rebarsmart/generators 下的 FixNumberGenerator P0。
-app/tests 下的生成器单元/集成测试。
+app/src/ui / app/src/presentation 下的最小 Qt6 / OCCT UI 骨架。
+必要的 smoke / build 验证。
 必要的实现记录 / todo.csv 更新。
 ```
 
 边界：
 
 ```text
-不接 Qt。
-不接 Detail。
-不实现下一阶段生成器。
+不实现 STEP 导入。
+不实现钢筋业务。
+不实现 Detail。
 不把未确认的 RebarSmart 边界行为写成确定结论。
 ```
 
@@ -182,19 +181,24 @@ TODO-013：
 
 实现记录：
   docs/architecture/10_TODO-013_FixDistanceGeneratorP0实现记录.md
+
+TODO-014：
+  FixNumberGenerator P0。
+
+实现记录：
+  docs/architecture/11_TODO-014_FixNumberGeneratorP0实现记录.md
 ```
 
 当前 next：
 
 ```text
-TODO-014：
-  FixNumberGenerator P0。
+TODO-015：
+  Qt6 OCCT 主窗口骨架。
 
 边界：
-  不接 Qt。
-  不接 Detail。
-  不实现下一阶段生成器。
-  不把未确认的 RebarSmart 边界行为写成确定结论。
+  不实现 STEP 导入。
+  不实现钢筋业务。
+  不实现 Detail。
 ```
 
 中期顺序：
@@ -208,6 +212,7 @@ TODO-011 IGeometryEngine 接口设计
 TODO-012 OcctGeometryEngine P0
 TODO-013 FixDistanceGenerator P0
 TODO-014 FixNumberGenerator P0
+TODO-015 Qt6 OCCT 主窗口骨架
 ```
 
 ## 用户可直接粘贴的 Goal 话术

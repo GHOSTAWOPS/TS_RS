@@ -86,6 +86,17 @@ target_link_libraries(tsrs_fix_distance_generator_tests
 
 add_test(NAME tsrs_fix_distance_generator_tests COMMAND tsrs_fix_distance_generator_tests)
 
+add_executable(tsrs_fix_number_generator_tests
+    rebarsmart/fix_number_generator_tests.cpp
+)
+
+target_link_libraries(tsrs_fix_number_generator_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_fix_number_generator_tests COMMAND tsrs_fix_number_generator_tests)
+
 add_executable(tsrs_geometry_engine_contract_tests
     geometry/geometry_engine_contract_tests.cpp
 )
