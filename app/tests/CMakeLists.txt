@@ -85,3 +85,27 @@ target_link_libraries(tsrs_geometry_engine_contract_tests
 )
 
 add_test(NAME tsrs_geometry_engine_contract_tests COMMAND tsrs_geometry_engine_contract_tests)
+
+add_executable(tsrs_occt_geometry_engine_tests
+    geometry/occt_geometry_engine_tests.cpp
+)
+
+target_link_libraries(tsrs_occt_geometry_engine_tests
+    PRIVATE
+        tsrs_geometry_occt
+)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR)
+    add_custom_command(TARGET tsrs_occt_geometry_engine_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TSRS_VCPKG_RUNTIME_BIN_DIR}"
+            $<TARGET_FILE_DIR:tsrs_occt_geometry_engine_tests>
+        VERBATIM)
+endif()
+
+add_test(NAME tsrs_occt_geometry_engine_tests COMMAND tsrs_occt_geometry_engine_tests)
+
+if(TSRS_VCPKG_INSTALLED_DIR)
+    set_tests_properties(tsrs_occt_geometry_engine_tests PROPERTIES
+        ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
+endif()
