@@ -12,6 +12,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(tsrs_app_core STATIC
     src/core/AppBuildInfo.cpp
     src/rebarsmart/space_list/SpaceListParser.cpp
+    src/rebarsmart/distribute/PriorityCountDistributor.cpp
+    src/rebarsmart/distribute/PrioritySpaceDistributor.cpp
 )
 
 target_include_directories(tsrs_app_core

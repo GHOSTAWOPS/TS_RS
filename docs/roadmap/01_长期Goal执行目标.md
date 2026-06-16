@@ -104,21 +104,21 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-008：
-  实现 PrioritySpaceDistributor / PriorityCountDistributor。
+TODO-009：
+  实现 PriorityListDistributor。
 ```
 
 目标：
 
 ```text
-继续 RebarSmart 纯算法层，实现间距优先 / 根数优先分布计算。
+继续 RebarSmart 纯算法层，实现间距列表优先分布计算。
 ```
 
 输出：
 
 ```text
-app/src/rebarsmart 下的 distributor 实现。
-app/tests/rebarsmart 下的分布计算测试。
+app/src/rebarsmart 下的 PriorityListDistributor 实现。
+app/tests/rebarsmart 下的间距列表分布计算测试。
 必要的实现记录 / build report / todo.csv 更新。
 ```
 
@@ -144,11 +144,21 @@ docs/architecture/03_旧实现项目QtOCCT可复用审计.md
 
 ## 推荐后续节点
 
-当前 next：
+已完成：
 
 ```text
 TODO-008：
-  实现 PrioritySpaceDistributor / PriorityCountDistributor。
+  PriorityCountDistributor / PrioritySpaceDistributor。
+
+实现记录：
+  docs/architecture/05_TODO-008_PriorityDistributors实现记录.md
+```
+
+当前 next：
+
+```text
+TODO-009：
+  实现 PriorityListDistributor。
 
 边界：
   只改 app/src/rebarsmart 与 app/tests/rebarsmart。

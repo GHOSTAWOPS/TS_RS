@@ -19,3 +19,25 @@ target_link_libraries(tsrs_space_list_parser_tests
 )
 
 add_test(NAME tsrs_space_list_parser_tests COMMAND tsrs_space_list_parser_tests)
+
+add_executable(tsrs_priority_count_distributor_tests
+    rebarsmart/priority_count_distributor_tests.cpp
+)
+
+target_link_libraries(tsrs_priority_count_distributor_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_priority_count_distributor_tests COMMAND tsrs_priority_count_distributor_tests)
+
+add_executable(tsrs_priority_space_distributor_tests
+    rebarsmart/priority_space_distributor_tests.cpp
+)
+
+target_link_libraries(tsrs_priority_space_distributor_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_priority_space_distributor_tests COMMAND tsrs_priority_space_distributor_tests)
