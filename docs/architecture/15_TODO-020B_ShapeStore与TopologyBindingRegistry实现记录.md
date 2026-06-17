@@ -25,10 +25,24 @@ binding reference 可保存成 JSON 风格字符串并恢复。
 
 ```text
 真实 Viewer 子对象选择已完成。
+ShapeStore / TopologyBindingRegistry 已经接入 STEP 导入 / 显示主链路。
 大型工程 STEP 所有面 / 边都不会 collision。
 TopologyBinding 已达到最终算法质量。
 钢筋生成器可以接真实选择。
 Detail 包兼容已完成。
+```
+
+重要边界：
+
+```text
+TODO-020B 当前是 registry library P0。
+它证明 ShapeStore / TopologyBindingRegistry 可以独立构建和测试，
+但不代表 MainWindow / StepImportCommandService / OccViewerWidget
+已经形成 StepSession 主链路。
+
+进入 TODO-021 Viewer 选择系统前，
+必须让选择输出 stable binding id，
+且禁止把裸 TopoDS / AIS 对象交给 generator。
 ```
 
 ## 实现内容
@@ -204,6 +218,9 @@ Viewer selection 不能绕过 binding id 直接把 TopoDS 传给 generator。
 | TODO020B-GAP-004 | 当前 serialize / deserialize 是受控 JSON 风格字符串，不是完整工程文件 schema。 | TODO-026 `.tsrebar` save/open 时统一收口。 |
 | TODO020B-GAP-005 | 真实 Viewer selection -> binding id 尚未接通。 | TODO-021 处理；但 TODO-021 必须等 Detail 前置验证后再做。 |
 | TODO020B-GAP-006 | `StepImportCommandService` 仍通过 `StepDisplayModel` 间接暴露 `TopoDS_Shape` 到 application/presentation 边界。 | 这是 TODO-020 已记录的显示链路近似；不在 TODO-020B 扩散重构，后续 ShapeStore / display model 边界收口节点处理。 |
+| TODO020B-GAP-007 | registry 尚未接入 StepSession / ImportedModelStore 主链路。 | 新增后续 TODO，TODO-021 前必须避免 Viewer 选择绕过 registry。 |
+| TODO020B-GAP-008 | restore 当前以 stableId exact match 为主，未使用 geometryFingerprint / fallbackLocalIndex / fallbackBbox 做降级恢复。 | 新增后续 TODO；不作为 TODO-022 前置阻塞。 |
+| TODO020B-GAP-009 | edge endpoint fingerprint 尚未 canonicalize，方向翻转可能导致 stableId 漂移。 | 新增后续 TODO；真实工程 STEP 扩展验证前必须处理。 |
 
 ## xhigh 只读 review
 

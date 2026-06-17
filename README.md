@@ -23,8 +23,13 @@ RebarSmart 作为钢筋生成逻辑的证据源。
 当前阶段：
 
 ```text
-M2：纯算法层 / 工程骨架。
-当前 next：见 todo.csv。
+TODO-020 已完成：真实 STEP/STP 导入与水泥灰显示。
+TODO-020B 已完成：ShapeStore + TopologyBindingRegistry P0 library。
+当前 next：TODO-022 DetailPackageReader P0。
+
+P0A 最小真实闭环尚未放行。
+Detail 兼容尚未放行，必须等 TODO-024 autoin 人工验证。
+TODO-021 Viewer 选择系统继续后置，不能抢跑接 generator。
 ```
 
 关键入口：
@@ -36,7 +41,9 @@ docs/architecture/01_纯算法层实现计划.md
 docs/architecture/02_TODO-006_app工程骨架实现记录.md
 docs/roadmap/00_路线图.md
 docs/roadmap/01_长期Goal执行目标.md
+docs/external_reviews/20260617_after_TODO020B_conditional_go.md
 docs/rebarsmart/00_证据索引.md
 docs/rebarsmart/01_GenerateRebarData字段地图.md
+docs/validation/fixtures/detail_todo66_manifest.md
 todo.csv
 ```

@@ -60,6 +60,26 @@ DetailFileSnapshot
   diagnostics
 ```
 
+TODO-022 P0 额外边界：
+
+```text
+只读旧包。
+只做统计视图和 rawXml 保留。
+不做 DrawingModel 字段映射。
+不做 RebarModel 映射。
+不写 Detail 包。
+不声称 CAD 插件兼容。
+```
+
+真实证据门禁：
+
+```text
+TODO-022 必须使用 docs/validation/fixtures/detail_todo66_manifest.md
+指向的真实样本，或使用从该样本脱敏得到的 repo-local fixture。
+
+synthetic XML 只能补边界测试，不能替代真实样本。
+```
+
 要求：
 
 ```text

@@ -115,11 +115,21 @@ RebarSmart 作为钢筋生成逻辑证据源。
 读取旧图石 Detail 包样本，建立 P0 统计视图。
 ```
 
+启动前置：
+
+```text
+已完成外部评审条件收口。
+必须使用 docs/validation/fixtures/detail_todo66_manifest.md
+指向的真实样本，或使用从该样本脱敏得到的 repo-local fixture。
+不能只用 synthetic XML 宣称 TODO-022 done。
+```
+
 输出：
 
 ```text
 DetailPackageReader P0。
 读取视图 / 线 / 钢筋组 / 表格等基础数量。
+保留 rawXml / 原文件名 / sheetIndex。
 保守保留未知字段的后续 round-trip 输入条件。
 必要的实现记录、todo.csv / roadmap 更新。
 ```
@@ -131,6 +141,8 @@ DetailPackageReader P0。
 不接 Viewer。
 不接钢筋生成器。
 不把 Detail 字段反向污染 RebarModel。
+不创建 DrawingModel / RebarModel 映射。
+不写 Detail 包。
 不宣称 CAD 插件兼容已完成。
 ```
 
@@ -267,10 +279,15 @@ TODO-018 Detail 包证据索引与 round-trip policy
 TODO-019 RebarSmart 单位枚举默认值规则
 TODO-020 STEP 导入与水泥灰显示
 TODO-020B ShapeStore + TopologyBindingRegistry P0
+TODO-020C 外部评审条件收口
 TODO-022 DetailPackageReader P0
 TODO-023 DetailPackageWriter round-trip
 TODO-024 极简 Detail 包生成 + autoin 验证
+TODO-020D TopologyBindingRegistry P1 hardening
+TODO-020E StepSession / ImportedModelStore 主链路
+TODO-020G CommandService skeleton guardrails
 TODO-021 Viewer 选择系统
+TODO-020F STEP import unit and scale policy
 ```
 
 说明：
@@ -278,6 +295,19 @@ TODO-021 Viewer 选择系统
 ```text
 TODO-013 / TODO-014 的代码文件名仍是 FixDistanceGenerator / FixNumberGenerator，
 但当前能力边界只允许称为 Centerline P0。
+
+TODO-020C 是外部评审后的条件收口节点。
+
+TODO-022 / TODO-023 / TODO-024 前置 Detail 读写和极简 autoin 验证，
+是为了先验证老图石 CAD 插件兼容出口，
+不要直接跳到 Viewer 选择系统。
+
+TODO-020D / TODO-020E / TODO-020G 必须在 TODO-021 前完成，
+避免 Viewer 选择绕过 stable binding 或 CommandService。
+
+TODO-020F 不阻塞 TODO-021。
+它阻塞的是正式 RebarModel / Schedule / generator->Detail 链路，
+用于避免 STEP 源单位、TS_RS 内部单位、RebarSmart 参数单位和 Detail 输出单位混用。
 ```
 
 ## 用户可直接粘贴的 Goal 话术
@@ -303,9 +333,17 @@ xhigh 只能 review，不能修改；主流程 agent 负责修改。
 子代理完成后必须关闭。
 完成后更新文档、todo.csv，运行验证，commit，打 annotated tag，push。
 
-当前从 TODO-007 开始：
-实现 SpaceListParser。
-只改 app/src/rebarsmart 与 app/tests/rebarsmart。
-先补测试，再实现。
-不接 Qt，不接 OCCT，不接 Detail。
+当前从 todo.csv 中唯一 status=next 的节点开始。
+当前 next 应为 TODO-022：DetailPackageReader P0。
+
+TODO-022 边界：
+只改 drawing/detail 相关代码和测试。
+使用 docs/validation/fixtures/detail_todo66_manifest.md 指向的真实样本，
+或使用从该样本脱敏得到的 repo-local fixture。
+读取旧 Detail 包统计视图，保留 rawXml / source file / sheetIndex。
+不写 Detail 包。
+不接 Viewer。
+不接钢筋生成器。
+不创建 DrawingModel / RebarModel 映射。
+不宣称 CAD 插件兼容已完成。
 ```

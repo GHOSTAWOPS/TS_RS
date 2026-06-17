@@ -34,3 +34,5 @@ exports/
 dist/
 review_packages/
 external_reviews/
+!docs/external_reviews/
+!docs/external_reviews/**

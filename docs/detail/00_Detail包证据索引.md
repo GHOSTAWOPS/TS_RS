@@ -10,6 +10,21 @@ TODO-018 只做 Detail 包证据索引和 round-trip policy，不写 C++。
 C:\Users\ghost\Desktop\reverse_engineering\【03】图石软件\docs\phase1\todo66
 ```
 
+可提交追溯清单：
+
+```text
+docs/validation/fixtures/detail_todo66_manifest.md
+```
+
+TODO-022 启动条件：
+
+```text
+必须使用该本机真实样本并校验 manifest，
+或使用由该 manifest 派生的 repo-local 脱敏 fixture。
+
+只用手写 synthetic XML 不能标记 TODO-022 done。
+```
+
 样本包括：
 
 ```text
@@ -186,6 +201,10 @@ Line
 ```text
 TODO-022 DetailPackageReader P0
   -> 只读旧包，统计节点和关键字段。
+  -> 保留 rawXml / 原文件名 / sheetIndex。
+  -> 不创建 DrawingModel。
+  -> 不创建 RebarModel。
+  -> 不写新 Detail 包。
 
 TODO-023 DetailPackageWriter round-trip
   -> Reader -> Writer 保守回写，未知节点 / 未知属性不丢。
