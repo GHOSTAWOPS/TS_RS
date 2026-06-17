@@ -11,6 +11,8 @@ inline constexpr const char* kDetailDiagnosticSheetMissing = "DETAIL_SHEET_MISSI
 inline constexpr const char* kDetailDiagnosticXmlParseFailed = "DETAIL_XML_PARSE_FAILED";
 inline constexpr const char* kDetailDiagnosticRootUnexpected = "DETAIL_ROOT_UNEXPECTED";
 inline constexpr const char* kDetailDiagnosticSheetIndexGap = "DETAIL_SHEET_INDEX_GAP";
+inline constexpr const char* kDetailDiagnosticWriteFailed = "DETAIL_WRITE_FAILED";
+inline constexpr const char* kDetailDiagnosticWriteValidateFailed = "DETAIL_WRITE_VALIDATE_FAILED";
 
 struct DetailDiagnostic {
     std::string code;

@@ -208,7 +208,10 @@ TODO-022 DetailPackageReader P0
   -> 已完成，见 docs/architecture/16_TODO-022_DetailPackageReaderP0实现记录.md。
 
 TODO-023 DetailPackageWriter round-trip
-  -> Reader -> Writer 保守回写，未知节点 / 未知属性不丢。
+  -> 已完成 preserve-mode rawXml passthrough round-trip。
+  -> Reader -> Writer -> Reader 后文件数量和 knownSummary 一致。
+  -> 未知节点 / 未知属性 P0 统计不减少。
+  -> 见 docs/architecture/18_TODO-023_DetailPackageWriterRoundTrip实现记录.md。
 
 TODO-024 极简 Detail 包生成
   -> 生成 Detail.xml + Detail01.stl XML 一条 section-line。

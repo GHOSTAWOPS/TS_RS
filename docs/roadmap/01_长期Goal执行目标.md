@@ -106,7 +106,7 @@ RebarSmart 作为钢筋生成逻辑证据源。
 
 ```text
 以 todo.csv 中唯一 status=next 的任务为准。
-当前 next 应为 TODO-023：DetailPackageWriter round-trip。
+当前 next 应为 TODO-024：极简 Detail 包生成 + autoin 验证。
 ```
 
 目标：
@@ -266,12 +266,18 @@ TODO-022：
 TODO-023：
   DetailPackageWriter round-trip。
 
+输出：
+  docs/architecture/18_TODO-023_DetailPackageWriterRoundTrip实现记录.md
+
+TODO-024：
+  极简 Detail 包生成 + autoin 验证。
+
 边界：
-  只改 drawing/detail 相关代码和测试。
+  只改 Detail minimal generate / export 相关代码、测试和文档。
   不接 Viewer。
   不接钢筋生成器。
   不把 Detail 字段反向污染 RebarModel。
-  只做 preserve-mode round-trip，不做 minimal generate。
+  需要旧 AutoCAD 插件 autoin 人工验证。
 ```
 
 中期顺序：

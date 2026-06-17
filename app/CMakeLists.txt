@@ -161,6 +161,7 @@ target_link_libraries(tsrs_application
 
 add_library(tsrs_detail STATIC
     src/drawing/detail/DetailPackageReader.cpp
+    src/drawing/detail/DetailPackageWriter.cpp
 )
 
 target_include_directories(tsrs_detail
