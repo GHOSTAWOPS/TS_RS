@@ -48,7 +48,7 @@ if(TSRS_VCPKG_INSTALLED_DIR
 endif()
 
 find_package(OpenCASCADE CONFIG REQUIRED)
-find_package(Qt6 REQUIRED COMPONENTS Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
 qt_standard_project_setup()
 
@@ -157,6 +157,20 @@ target_include_directories(tsrs_application
 target_link_libraries(tsrs_application
     PUBLIC
         tsrs_step
+)
+
+add_library(tsrs_detail STATIC
+    src/drawing/detail/DetailPackageReader.cpp
+)
+
+target_include_directories(tsrs_detail
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(tsrs_detail
+    PUBLIC
+        Qt6::Core
 )
 
 add_library(tsrs_ui STATIC

@@ -74,10 +74,10 @@ TODO-022 P0 额外边界：
 真实证据门禁：
 
 ```text
-TODO-022 必须使用 docs/validation/fixtures/detail_todo66_manifest.md
-指向的真实样本，或使用从该样本脱敏得到的 repo-local fixture。
+TODO-022 已使用 docs/validation/fixtures/detail_todo66_manifest.md
+指向的真实样本完成 Reader P0。
 
-synthetic XML 只能补边界测试，不能替代真实样本。
+synthetic XML 只用于补边界测试，没有替代真实样本。
 ```
 
 要求：

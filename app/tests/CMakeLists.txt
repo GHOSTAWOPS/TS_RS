@@ -230,6 +230,24 @@ if(TSRS_VCPKG_INSTALLED_DIR)
         ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
 endif()
 
+add_executable(tsrs_detail_package_reader_tests
+    drawing/detail_package_reader_tests.cpp
+)
+
+target_link_libraries(tsrs_detail_package_reader_tests
+    PRIVATE
+        tsrs_detail
+)
+
+add_test(NAME tsrs_detail_package_reader_tests
+    COMMAND $<TARGET_FILE:tsrs_detail_package_reader_tests>)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR OR TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR)
+    set(_tsrs_detail_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+    set_tests_properties(tsrs_detail_package_reader_tests PROPERTIES
+        ENVIRONMENT "PATH=${_tsrs_detail_runtime_path};$ENV{PATH}")
+endif()
+
 add_executable(tsrs_step_model_display_style_tests
     presentation/step_model_display_style_tests.cpp
 )

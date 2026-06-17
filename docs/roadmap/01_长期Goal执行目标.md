@@ -106,31 +106,37 @@ RebarSmart 作为钢筋生成逻辑证据源。
 
 ```text
 以 todo.csv 中唯一 status=next 的任务为准。
-当前 next 应为 TODO-022：DetailPackageReader P0。
+当前 next 应为 TODO-023：DetailPackageWriter round-trip。
 ```
 
 目标：
 
 ```text
-读取旧图石 Detail 包样本，建立 P0 统计视图。
+Reader -> Writer 输出结构数量一致，
+并保守保留未知字段。
 ```
 
-启动前置：
+已完成：
 
 ```text
-已完成外部评审条件收口。
-必须使用 docs/validation/fixtures/detail_todo66_manifest.md
-指向的真实样本，或使用从该样本脱敏得到的 repo-local fixture。
-不能只用 synthetic XML 宣称 TODO-022 done。
+TODO-022 DetailPackageReader P0。
+已使用真实 todo66 fixture manifest 校验 hash。
+已读取 Detail.xml + Detail01..04.stl。
+已保留 rawXml / 原文件名 / sheetIndex。
+已输出 knownSummary 统计。
+未写 Detail 包。
+未接 Viewer。
+未映射 DrawingModel / RebarModel。
 ```
 
 输出：
 
 ```text
-DetailPackageReader P0。
-读取视图 / 线 / 钢筋组 / 表格等基础数量。
-保留 rawXml / 原文件名 / sheetIndex。
-保守保留未知字段的后续 round-trip 输入条件。
+DetailPackageWriter round-trip P0。
+Reader -> Writer 保守回写旧包。
+写出后 Reader 能再读。
+文件数量、rootName、knownSummary 关键统计一致。
+未知节点 / 未知属性不减少。
 必要的实现记录、todo.csv / roadmap 更新。
 ```
 
@@ -142,7 +148,7 @@ DetailPackageReader P0。
 不接钢筋生成器。
 不把 Detail 字段反向污染 RebarModel。
 不创建 DrawingModel / RebarModel 映射。
-不写 Detail 包。
+只做 preserve-mode round-trip，不做 minimal generate。
 不宣称 CAD 插件兼容已完成。
 ```
 
@@ -239,6 +245,12 @@ TODO-019：
 输出：
   docs/rebarsmart/02_单位枚举默认值规则.md
 
+TODO-022：
+  DetailPackageReader P0。
+
+输出：
+  docs/architecture/16_TODO-022_DetailPackageReaderP0实现记录.md
+
 2026-06-17 外部严格评审整改补充：
 
 输出：
@@ -251,14 +263,15 @@ TODO-019：
 当前 next：
 
 ```text
-TODO-022：
-  DetailPackageReader P0。
+TODO-023：
+  DetailPackageWriter round-trip。
 
 边界：
   只改 drawing/detail 相关代码和测试。
   不接 Viewer。
   不接钢筋生成器。
   不把 Detail 字段反向污染 RebarModel。
+  只做 preserve-mode round-trip，不做 minimal generate。
 ```
 
 中期顺序：
@@ -334,14 +347,13 @@ xhigh 只能 review，不能修改；主流程 agent 负责修改。
 完成后更新文档、todo.csv，运行验证，commit，打 annotated tag，push。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 应为 TODO-022：DetailPackageReader P0。
+当前 next 应为 TODO-023：DetailPackageWriter round-trip。
 
-TODO-022 边界：
+TODO-023 边界：
 只改 drawing/detail 相关代码和测试。
-使用 docs/validation/fixtures/detail_todo66_manifest.md 指向的真实样本，
-或使用从该样本脱敏得到的 repo-local fixture。
-读取旧 Detail 包统计视图，保留 rawXml / source file / sheetIndex。
-不写 Detail 包。
+Reader -> Writer 保守回写旧包。
+写出后 Reader 能再读，关键统计一致。
+不做 minimal generate。
 不接 Viewer。
 不接钢筋生成器。
 不创建 DrawingModel / RebarModel 映射。

@@ -16,13 +16,13 @@ C:\Users\ghost\Desktop\reverse_engineering\【03】图石软件\docs\phase1\todo
 docs/validation/fixtures/detail_todo66_manifest.md
 ```
 
-TODO-022 启动条件：
+TODO-022 已完成：
 
 ```text
-必须使用该本机真实样本并校验 manifest，
-或使用由该 manifest 派生的 repo-local 脱敏 fixture。
-
-只用手写 synthetic XML 不能标记 TODO-022 done。
+DetailPackageReader P0 已使用该本机真实样本并校验 manifest。
+Reader 已读取 Detail.xml + Detail01..04.stl。
+Reader 已输出 knownSummary，并保留 rawXml / 原文件名 / sheetIndex。
+Reader 未写 Detail 包，未创建 DrawingModel / RebarModel 映射。
 ```
 
 样本包括：
@@ -205,6 +205,7 @@ TODO-022 DetailPackageReader P0
   -> 不创建 DrawingModel。
   -> 不创建 RebarModel。
   -> 不写新 Detail 包。
+  -> 已完成，见 docs/architecture/16_TODO-022_DetailPackageReaderP0实现记录.md。
 
 TODO-023 DetailPackageWriter round-trip
   -> Reader -> Writer 保守回写，未知节点 / 未知属性不丢。
