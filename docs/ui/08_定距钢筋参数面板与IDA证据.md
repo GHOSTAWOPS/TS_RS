@@ -18,7 +18,8 @@ TS_RS 不照搬 3DE 弹窗外观，但定距钢筋的参数分组、字段语义
 2026-06-15 复查结论：
 
 ```text
-本文档继续作为 FixDistancePanel 和 FixDistanceGenerator 的主证据入口。
+本文档继续作为 FixDistancePanel 和 FixDistanceCenterlineGenerator 的主证据入口。
+当前代码已实现 centerline P0，不代表完整 RebarSmart FixDistance 复刻。
 
 但必须收紧证据口径：
 1. INI 字段、默认值、Ratio 是确定证据。
@@ -34,7 +35,7 @@ TS_RS 不照搬 3DE 弹窗外观，但定距钢筋的参数分组、字段语义
 FixDistancePanel：
   完整保留 RebarSmart 定距字段槽位，落到右侧 Dock。
 
-FixDistanceGenerator：
+FixDistanceCenterlineGenerator：
   只依赖 GenerateRebarData + FixDistanceSelectionContext + IGeometryEngine。
   不直接依赖 OCCT / AIS / TopoDS。
 
@@ -825,7 +826,7 @@ TS_RS 右侧 Dock 是新系统交互设计，不是 RebarSmart 原样行为。
 TS_RS 不调用 RebarSmart DLL。
 TS_RS 不依赖 3DE / CAA。
 本文档中的 DLL 只作为逆向证据源。
-FixDistanceGenerator 后续不能直接 include OCCT / AIS 类型。
+FixDistanceCenterlineGenerator 后续不能直接 include OCCT / AIS 类型。
 ```
 
 ## 待确认

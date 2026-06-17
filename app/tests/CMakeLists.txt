@@ -7,7 +7,7 @@ target_link_libraries(tsrs_app_smoke_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_app_smoke_tests COMMAND tsrs_app_smoke_tests)
+add_test(NAME tsrs_app_smoke_tests COMMAND $<TARGET_FILE:tsrs_app_smoke_tests>)
 
 add_executable(tsrs_space_list_parser_tests
     rebarsmart/space_list_parser_tests.cpp
@@ -18,7 +18,7 @@ target_link_libraries(tsrs_space_list_parser_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_space_list_parser_tests COMMAND tsrs_space_list_parser_tests)
+add_test(NAME tsrs_space_list_parser_tests COMMAND $<TARGET_FILE:tsrs_space_list_parser_tests>)
 
 add_executable(tsrs_priority_count_distributor_tests
     rebarsmart/priority_count_distributor_tests.cpp
@@ -29,7 +29,7 @@ target_link_libraries(tsrs_priority_count_distributor_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_priority_count_distributor_tests COMMAND tsrs_priority_count_distributor_tests)
+add_test(NAME tsrs_priority_count_distributor_tests COMMAND $<TARGET_FILE:tsrs_priority_count_distributor_tests>)
 
 add_executable(tsrs_priority_space_distributor_tests
     rebarsmart/priority_space_distributor_tests.cpp
@@ -40,7 +40,7 @@ target_link_libraries(tsrs_priority_space_distributor_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_priority_space_distributor_tests COMMAND tsrs_priority_space_distributor_tests)
+add_test(NAME tsrs_priority_space_distributor_tests COMMAND $<TARGET_FILE:tsrs_priority_space_distributor_tests>)
 
 add_executable(tsrs_priority_list_distributor_tests
     rebarsmart/priority_list_distributor_tests.cpp
@@ -51,7 +51,7 @@ target_link_libraries(tsrs_priority_list_distributor_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_priority_list_distributor_tests COMMAND tsrs_priority_list_distributor_tests)
+add_test(NAME tsrs_priority_list_distributor_tests COMMAND $<TARGET_FILE:tsrs_priority_list_distributor_tests>)
 
 add_executable(tsrs_guide_surface_offset_calculator_tests
     rebarsmart/guide_surface_offset_calculator_tests.cpp
@@ -62,7 +62,7 @@ target_link_libraries(tsrs_guide_surface_offset_calculator_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_guide_surface_offset_calculator_tests COMMAND tsrs_guide_surface_offset_calculator_tests)
+add_test(NAME tsrs_guide_surface_offset_calculator_tests COMMAND $<TARGET_FILE:tsrs_guide_surface_offset_calculator_tests>)
 
 add_executable(tsrs_guide_curve_zone_calculator_tests
     rebarsmart/guide_curve_zone_calculator_tests.cpp
@@ -73,7 +73,7 @@ target_link_libraries(tsrs_guide_curve_zone_calculator_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_guide_curve_zone_calculator_tests COMMAND tsrs_guide_curve_zone_calculator_tests)
+add_test(NAME tsrs_guide_curve_zone_calculator_tests COMMAND $<TARGET_FILE:tsrs_guide_curve_zone_calculator_tests>)
 
 add_executable(tsrs_fix_distance_generator_tests
     rebarsmart/fix_distance_generator_tests.cpp
@@ -84,7 +84,7 @@ target_link_libraries(tsrs_fix_distance_generator_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_fix_distance_generator_tests COMMAND tsrs_fix_distance_generator_tests)
+add_test(NAME tsrs_fix_distance_generator_tests COMMAND $<TARGET_FILE:tsrs_fix_distance_generator_tests>)
 
 add_executable(tsrs_fix_number_generator_tests
     rebarsmart/fix_number_generator_tests.cpp
@@ -95,7 +95,7 @@ target_link_libraries(tsrs_fix_number_generator_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_fix_number_generator_tests COMMAND tsrs_fix_number_generator_tests)
+add_test(NAME tsrs_fix_number_generator_tests COMMAND $<TARGET_FILE:tsrs_fix_number_generator_tests>)
 
 add_executable(tsrs_geometry_engine_contract_tests
     geometry/geometry_engine_contract_tests.cpp
@@ -106,7 +106,7 @@ target_link_libraries(tsrs_geometry_engine_contract_tests
         tsrs_app_core
 )
 
-add_test(NAME tsrs_geometry_engine_contract_tests COMMAND tsrs_geometry_engine_contract_tests)
+add_test(NAME tsrs_geometry_engine_contract_tests COMMAND $<TARGET_FILE:tsrs_geometry_engine_contract_tests>)
 
 add_executable(tsrs_occt_geometry_engine_tests
     geometry/occt_geometry_engine_tests.cpp
@@ -125,12 +125,96 @@ if(TSRS_VCPKG_RUNTIME_BIN_DIR)
         VERBATIM)
 endif()
 
-add_test(NAME tsrs_occt_geometry_engine_tests COMMAND tsrs_occt_geometry_engine_tests)
+add_test(NAME tsrs_occt_geometry_engine_tests COMMAND $<TARGET_FILE:tsrs_occt_geometry_engine_tests>)
 
 if(TSRS_VCPKG_INSTALLED_DIR)
     set_tests_properties(tsrs_occt_geometry_engine_tests PROPERTIES
         ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
 endif()
+
+add_executable(tsrs_step_import_service_tests
+    step/step_import_service_tests.cpp
+)
+
+target_link_libraries(tsrs_step_import_service_tests
+    PRIVATE
+        tsrs_step
+)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR)
+    add_custom_command(TARGET tsrs_step_import_service_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TSRS_VCPKG_RUNTIME_BIN_DIR}"
+            $<TARGET_FILE_DIR:tsrs_step_import_service_tests>
+        VERBATIM)
+endif()
+
+add_test(NAME tsrs_step_import_service_tests COMMAND $<TARGET_FILE:tsrs_step_import_service_tests>)
+
+if(TSRS_VCPKG_INSTALLED_DIR)
+    set_tests_properties(tsrs_step_import_service_tests PROPERTIES
+        ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
+endif()
+
+add_executable(tsrs_step_import_command_service_tests
+    application/step_import_command_service_tests.cpp
+)
+
+target_link_libraries(tsrs_step_import_command_service_tests
+    PRIVATE
+        tsrs_application
+)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR)
+    add_custom_command(TARGET tsrs_step_import_command_service_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TSRS_VCPKG_RUNTIME_BIN_DIR}"
+            $<TARGET_FILE_DIR:tsrs_step_import_command_service_tests>
+        VERBATIM)
+endif()
+
+add_test(NAME tsrs_step_import_command_service_tests COMMAND $<TARGET_FILE:tsrs_step_import_command_service_tests>)
+
+if(TSRS_VCPKG_INSTALLED_DIR)
+    set_tests_properties(tsrs_step_import_command_service_tests PROPERTIES
+        ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
+endif()
+
+add_executable(tsrs_step_import_local_sample_probe_tests
+    application/step_import_local_sample_probe_tests.cpp
+)
+
+target_link_libraries(tsrs_step_import_local_sample_probe_tests
+    PRIVATE
+        tsrs_application
+)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR)
+    add_custom_command(TARGET tsrs_step_import_local_sample_probe_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TSRS_VCPKG_RUNTIME_BIN_DIR}"
+            $<TARGET_FILE_DIR:tsrs_step_import_local_sample_probe_tests>
+        VERBATIM)
+endif()
+
+add_test(NAME tsrs_step_import_local_sample_probe_tests
+    COMMAND $<TARGET_FILE:tsrs_step_import_local_sample_probe_tests>)
+
+if(TSRS_VCPKG_INSTALLED_DIR)
+    set_tests_properties(tsrs_step_import_local_sample_probe_tests PROPERTIES
+        ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
+endif()
+
+add_executable(tsrs_step_model_display_style_tests
+    presentation/step_model_display_style_tests.cpp
+)
+
+target_link_libraries(tsrs_step_model_display_style_tests
+    PRIVATE
+        tsrs_ui
+)
+
+add_test(NAME tsrs_step_model_display_style_tests COMMAND $<TARGET_FILE:tsrs_step_model_display_style_tests>)
 
 add_executable(tsrs_main_window_skeleton_tests
     ui/main_window_skeleton_tests.cpp
@@ -141,7 +225,7 @@ target_link_libraries(tsrs_main_window_skeleton_tests
         tsrs_ui
 )
 
-add_test(NAME tsrs_main_window_skeleton_tests COMMAND tsrs_main_window_skeleton_tests)
+add_test(NAME tsrs_main_window_skeleton_tests COMMAND $<TARGET_FILE:tsrs_main_window_skeleton_tests>)
 
 if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
     set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")
@@ -157,9 +241,11 @@ add_executable(tsrs_app_startup_smoke_tests
 target_link_libraries(tsrs_app_startup_smoke_tests
     PRIVATE
         Qt6::Core
+        tsrs_application
 )
 
-add_test(NAME tsrs_app_startup_smoke_tests COMMAND tsrs_app_startup_smoke_tests)
+add_test(NAME tsrs_app_startup_smoke_tests
+    COMMAND $<TARGET_FILE:tsrs_app_startup_smoke_tests> $<TARGET_FILE:tsrs_app>)
 
 if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
     set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")

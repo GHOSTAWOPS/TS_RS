@@ -1,9 +1,12 @@
 #include "ui/mainwindow/MainWindow.h"
 
+#include "application/commands/StepImportCommandService.h"
 #include "presentation/occ/OccViewerWidget.h"
 
 #include <QDockWidget>
+#include <QFileInfo>
 #include <QLabel>
+#include <QDebug>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTabWidget>
@@ -40,6 +43,55 @@ void MainWindow::buildUi()
     addDockWidget(Qt::LeftDockWidgetArea, createProjectTreeDock());
     addDockWidget(Qt::RightDockWidgetArea, createCommandPanelDock());
     addDockWidget(Qt::BottomDockWidgetArea, createBottomMessagesDock());
+}
+
+bool MainWindow::importStepFile(const QString& stepPath)
+{
+    return importStepFileInternal(stepPath, true);
+}
+
+bool MainWindow::importStepFileForSmoke(const QString& stepPath)
+{
+    return importStepFileInternal(stepPath, false);
+}
+
+bool MainWindow::importStepFileInternal(const QString& stepPath, bool displayInViewer)
+{
+    const tsrs::application::StepImportCommandService service;
+    const tsrs::application::StepImportCommandResult imported =
+        service.importStep({stepPath.toStdString()});
+    if (!imported.ok) {
+        qWarning().noquote() << QStringLiteral("STEP 导入失败：%1 [%2]")
+                                    .arg(QString::fromStdString(imported.diagnostic))
+                                    .arg(QString::fromStdString(imported.diagnosticCode));
+        if (messageLog_ != nullptr) {
+            messageLog_->append(QStringLiteral("STEP 导入失败：%1")
+                                    .arg(QString::fromStdString(imported.diagnostic)));
+        }
+        return false;
+    }
+
+    if (displayInViewer && (viewer_ == nullptr || !viewer_->displayStepModel(imported.displayModel))) {
+        qWarning().noquote() << QStringLiteral("STEP 显示失败：%1")
+                                    .arg(QFileInfo(stepPath).fileName());
+        if (messageLog_ != nullptr) {
+            messageLog_->append(QStringLiteral("STEP 显示失败：%1")
+                                    .arg(QFileInfo(stepPath).fileName()));
+        }
+        return false;
+    }
+
+    if (messageLog_ != nullptr) {
+        messageLog_->append(QStringLiteral("STEP 已导入：%1，faces=%2，edges=%3，vertices=%4")
+                                .arg(QFileInfo(stepPath).fileName())
+                                .arg(imported.displayModel.faceCount)
+                                .arg(imported.displayModel.edgeCount)
+                                .arg(imported.displayModel.vertexCount));
+        if (!displayInViewer) {
+            messageLog_->append(QStringLiteral("Smoke 模式：已跳过 Viewer 显示。"));
+        }
+    }
+    return true;
 }
 
 QTabWidget* MainWindow::createMainTabs()

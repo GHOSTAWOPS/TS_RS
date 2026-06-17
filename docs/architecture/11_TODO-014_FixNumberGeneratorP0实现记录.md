@@ -1,4 +1,4 @@
-# TODO-014 FixNumberGenerator P0 实现记录
+# TODO-014 FixNumberCenterlineGenerator P0 实现记录
 
 ## 结论
 
@@ -6,10 +6,19 @@
 TODO-014 已完成。
 
 TS_RS 现在具备 RebarSmart-style 定数钢筋的 P0 主路径生成器：
-  FixNumberGenerator
+  FixNumberCenterlineGenerator P0
 ```
 
-本轮只实现定数生成器主路径，不接 Qt，不接 Detail，不扩展到真实辅助配对、孔洞、弯钩、式样表和实体钢筋对象。
+本轮只实现定数中心线生成主路径，不接 Qt，不接 Detail，不扩展到真实辅助配对、孔洞、弯钩、式样表和实体钢筋对象。
+
+说明：
+
+```text
+代码文件仍叫 FixNumberGenerator.*，
+公开函数是 generateFixNumberCenterlines(...）。
+后续文档和评审统一称为 FixNumberCenterlineGenerator P0，
+避免误解为完整 RebarSmart FixNumber 复刻。
+```
 
 ## 控制合同
 
@@ -22,7 +31,7 @@ Primary Setpoint：
 Acceptance：
 
 ```text
-1. 先补 FixNumberGenerator 测试，再实现。
+1. 先补 FixNumberCenterlineGenerator 测试，再实现。
 2. 测试覆盖至少两条引导线、根数等分、相邻配对生成中心线。
 3. 测试覆盖 guide curve count invalid / guide curve invalid / diameter invalid / count non-positive。
 4. targeted CTest 通过。
@@ -228,6 +237,7 @@ Minor：
 | RS-FNG-GAP-002 | 轴线经孔洞处理 / 弯钩 / 辅助延长的真实顺序 | 保持为后续 TODO |
 | RS-FNG-GAP-003 | `basic.spacingM` 在定数模式中的真实用途 | 保持为证据待确认项 |
 | RS-FNG-GAP-004 | 生成结果还只是中心线引用，不是完整钢筋实体 | 保持为后续 TODO |
+| RS-FNG-GAP-005 | 投影 / 偏移 / 相交 / 扫掠未进入 IGeometryEngine P0 | 见 `docs/geometry/01_IGeometryEngine_P1扩展接口.md` |
 
 ## 对 todo.csv 的影响
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QString>
 
 class QDockWidget;
 class QTabWidget;
@@ -16,8 +17,11 @@ namespace tsrs::ui {
 class MainWindow final : public QMainWindow {
 public:
     explicit MainWindow(QWidget* parent = nullptr);
+    [[nodiscard]] bool importStepFile(const QString& stepPath);
+    [[nodiscard]] bool importStepFileForSmoke(const QString& stepPath);
 
 private:
+    [[nodiscard]] bool importStepFileInternal(const QString& stepPath, bool displayInViewer);
     void buildUi();
     QTabWidget* createMainTabs();
     QDockWidget* createProjectTreeDock();

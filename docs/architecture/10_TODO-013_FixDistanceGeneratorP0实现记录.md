@@ -1,4 +1,4 @@
-# TODO-013 FixDistanceGenerator P0 实现记录
+# TODO-013 FixDistanceCenterlineGenerator P0 实现记录
 
 ## 结论
 
@@ -6,10 +6,19 @@
 TODO-013 已完成。
 
 TS_RS 现在具备 RebarSmart-style 定距钢筋的 P0 主路径生成器：
-  FixDistanceGenerator
+  FixDistanceCenterlineGenerator P0
 ```
 
-本轮只实现定距生成器主路径，不接 Qt，不接 Detail，不实现 FixNumberGenerator，不扩展到孔洞、弯钩、式样表和实体钢筋对象。
+本轮只实现定距中心线生成主路径，不接 Qt，不接 Detail，不实现 FixNumberCenterlineGenerator，不扩展到孔洞、弯钩、式样表和实体钢筋对象。
+
+说明：
+
+```text
+代码文件仍叫 FixDistanceGenerator.*，
+公开函数是 generateFixDistanceCenterlines(...）。
+后续文档和评审统一称为 FixDistanceCenterlineGenerator P0，
+避免误解为完整 RebarSmart FixDistance 复刻。
+```
 
 ## 控制合同
 
@@ -22,7 +31,7 @@ Primary Setpoint：
 Acceptance：
 
 ```text
-1. 先补 FixDistanceGenerator 测试，再实现。
+1. 先补 FixDistanceCenterlineGenerator 测试，再实现。
 2. 测试覆盖 spacing / count / spacing list 三种分布优先模式。
 3. 测试覆盖 main curve invalid / auxiliary curve invalid / priority mode unknown / spacing non-positive。
 4. 生成结果能通过 IGeometryEngine 形成中心线 polyline。
@@ -36,7 +45,7 @@ Guardrail Metrics：
 ```text
 不接 Qt。
 不接 Detail。
-不实现 FixNumberGenerator。
+不实现 FixNumberCenterlineGenerator。
 不调用 RebarSmart DLL。
 不调用 VisualTS EXE / DLL。
 不引入 3DE / CAA / CATIA / ACIS / HOOPS / Codejock 运行时依赖。
@@ -229,6 +238,7 @@ Minor：
 | RS-FDG-GAP-001 | 辅助引导线在 P0 中只是方向模板 | 已记录，后续闭合真实辅助区间几何 |
 | RS-FDG-GAP-002 | 孔洞 / 弯钩 / 式样表未纳入 | 保持为后续 TODO |
 | RS-FDG-GAP-003 | 生成结果还只是中心线引用，不是完整钢筋实体 | 保持为后续 TODO |
+| RS-FDG-GAP-004 | 投影 / 偏移 / 相交 / 扫掠未进入 IGeometryEngine P0 | 见 `docs/geometry/01_IGeometryEngine_P1扩展接口.md` |
 
 ## 对 todo.csv 的影响
 

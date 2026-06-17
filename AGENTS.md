@@ -12,6 +12,49 @@ RebarSmart 证据驱动钢筋生成逻辑复刻。
 老图石 / VisualTS 只作为 Detail 包、工程图字段、CAD 插件兼容证据源。
 ```
 
+## 外部评审核心修正
+
+`TS_RS_strict_external_review_for_developers_20260617.md` 的结论为：
+
+```text
+有条件通过，不建议按旧 todo 原样继续堆功能。
+```
+
+TS_RS 已接受以下修正为当前硬约束：
+
+```text
+UI 外壳固定为老图石五页签：
+  开始 / 显示 / 钢筋 / 查询 / 工程图
+
+P0A 只验收一个最小真实闭环：
+  STEP 导入
+  -> Viewer 水泥灰显示
+  -> 选择边 / 面
+  -> TopologyBinding 保存恢复
+  -> FixDistance 或 FixNumber 中心线生成
+  -> RebarModel 保存
+  -> 基础下料表
+  -> 极简 Detail 包
+  -> AutoCAD 插件 autoin 人工验证
+
+TODO-013 / TODO-014 当前已实现能力只能称为：
+  FixDistanceCenterlineGenerator P0
+  FixNumberCenterlineGenerator P0
+
+它们不是完整 RebarSmart FixDistance / FixNumber 复刻。
+```
+
+评审整改入口：
+
+```text
+docs/roadmap/02_外部技术评审核心修正.md
+docs/roadmap/03_P0A最小闭环与前置验证门禁.md
+docs/architecture/13_ApplicationService_CommandService_边界.md
+docs/geometry/01_IGeometryEngine_P1扩展接口.md
+docs/validation/00_golden_case_strategy.md
+docs/legal/00_reverse_engineering_and_resource_reuse_boundary.md
+```
+
 ## 禁止事项
 
 ```text
@@ -21,6 +64,9 @@ RebarSmart 证据驱动钢筋生成逻辑复刻。
 不要迁入旧实现项目【图石钢筋1比1复刻】里的 rebar 业务代码作为 TS_RS 主线。
 不要让 domain/rebar 依赖 TopoDS / AIS / BRep 等 OCCT 细节。
 不要用“OCCT 能做到什么”替代“RebarSmart 参数和算法证据是什么”。
+不要要求 USB 加密狗作为 TS_RS 运行条件。
+不要把 Detail 包字段反向污染 RebarModel。
+不要把 Mock 几何测试当成真实 golden case。
 ```
 
 ## 旧实现项目参考边界
@@ -63,6 +109,31 @@ RebarCreationCommandService 中直接造钢筋的业务流程。
 废弃草案不要保留在当前开发文档里。
 不确定的 RebarSmart 行为优先用 IDA MCP / PDF / 实际运行确认。
 字段、单位、枚举、算法低置信时必须标 GAP。
+如果外部评审意见与当前 todo 编号不一致，按问题本身核对，不机械套旧编号。
+```
+
+## 命令链边界
+
+```text
+UI Command Handler
+  -> Application Service / CommandService
+  -> RebarSmart-style Generator
+  -> RebarModel Transaction
+  -> Preview / Commit / Rollback
+```
+
+禁止：
+
+```text
+UI 直接 new generator 并修改 RebarModel。
+UI 直接保存 AIS / TopoDS 指针。
+Generator 依赖 QWidget / AIS / TopoDS。
+```
+
+详细规则见：
+
+```text
+docs/architecture/13_ApplicationService_CommandService_边界.md
 ```
 
 ## 代码阶段规则

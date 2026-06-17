@@ -74,6 +74,24 @@ set(TSRS_OCCT_GEOMETRY_LIBS
     TKGeomAlgo
     TKTopAlgo)
 
+set(TSRS_OCCT_STEP_LIBS
+    TKernel
+    TKMath
+    TKG2d
+    TKG3d
+    TKGeomBase
+    TKBRep
+    TKGeomAlgo
+    TKTopAlgo
+    TKXSBase
+    TKDE
+    TKDESTEP)
+
+set(TSRS_OCCT_VIEWER_LIBS
+    TKService
+    TKV3d
+    TKOpenGl)
+
 add_library(tsrs_app_core STATIC
     src/core/AppBuildInfo.cpp
     src/rebarsmart/space_list/SpaceListParser.cpp
@@ -109,8 +127,39 @@ target_link_libraries(tsrs_geometry_occt
         ${TSRS_OCCT_GEOMETRY_LIBS}
 )
 
+add_library(tsrs_step STATIC
+    src/step/StepImportService.cpp
+)
+
+target_include_directories(tsrs_step
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${TSRS_OCCT_INCLUDE_DIR}"
+)
+
+target_link_libraries(tsrs_step
+    PUBLIC
+        ${TSRS_OCCT_STEP_LIBS}
+)
+
+add_library(tsrs_application STATIC
+    src/application/commands/StepImportCommandService.cpp
+)
+
+target_include_directories(tsrs_application
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${TSRS_OCCT_INCLUDE_DIR}"
+)
+
+target_link_libraries(tsrs_application
+    PUBLIC
+        tsrs_step
+)
+
 add_library(tsrs_ui STATIC
     src/presentation/occ/OccViewerWidget.cpp
+    src/presentation/style/StepModelDisplayStyle.cpp
     src/ui/mainwindow/MainWindow.cpp
 )
 
@@ -119,11 +168,14 @@ set_target_properties(tsrs_ui PROPERTIES AUTOMOC ON)
 target_include_directories(tsrs_ui
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        "${TSRS_OCCT_INCLUDE_DIR}"
 )
 
 target_link_libraries(tsrs_ui
     PUBLIC
         Qt6::Widgets
+        tsrs_application
+        ${TSRS_OCCT_VIEWER_LIBS}
 )
 
 qt_add_executable(tsrs_app

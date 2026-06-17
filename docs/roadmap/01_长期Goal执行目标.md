@@ -68,6 +68,7 @@ RebarSmart 作为钢筋生成逻辑证据源。
 7. Detail 包路线保持为老图石兼容导出，不反向污染 RebarModel。
 8. todo.csv 每轮只有一个 status=next。
 9. 每轮都有文档、验证、commit、annotated tag、push。
+10. 外部技术评审指出的 P0A / Detail / TopologyBinding / Centerline 命名边界已持续执行。
 ```
 
 ## 每轮执行规则
@@ -179,13 +180,13 @@ TODO-012：
   docs/architecture/09_TODO-012_OcctGeometryEngineP0实现记录.md
 
 TODO-013：
-  FixDistanceGenerator P0。
+  FixDistanceCenterlineGenerator P0。
 
 实现记录：
   docs/architecture/10_TODO-013_FixDistanceGeneratorP0实现记录.md
 
 TODO-014：
-  FixNumberGenerator P0。
+  FixNumberCenterlineGenerator P0。
 
 实现记录：
   docs/architecture/11_TODO-014_FixNumberGeneratorP0实现记录.md
@@ -225,20 +226,28 @@ TODO-019：
 
 输出：
   docs/rebarsmart/02_单位枚举默认值规则.md
+
+2026-06-17 外部严格评审整改补充：
+
+输出：
+  docs/architecture/13_ApplicationService_CommandService_边界.md
+  docs/geometry/01_IGeometryEngine_P1扩展接口.md
+  docs/validation/00_golden_case_strategy.md
+  docs/legal/00_reverse_engineering_and_resource_reuse_boundary.md
 ```
 
 当前 next：
 
 ```text
-TODO-020：
-  STEP 导入与水泥灰显示。
+TODO-020B：
+  ShapeStore + TopologyBindingRegistry P0。
 
 边界：
-  允许修改 step / presentation / viewer 相关代码和测试。
+  允许修改 step / topology binding 相关代码和测试。
   不实现钢筋业务。
   不实现 Detail。
   不实现完整 Viewer 选择系统。
-  不实现 TopologyBinding 保存恢复。
+  不把真实 Viewer 选择结果接 generator。
 ```
 
 中期顺序：
@@ -250,18 +259,26 @@ TODO-009 PriorityList
 TODO-010 GuideSurfaceOffset / GuideCurveZone
 TODO-011 IGeometryEngine 接口设计
 TODO-012 OcctGeometryEngine P0
-TODO-013 FixDistanceGenerator P0
-TODO-014 FixNumberGenerator P0
+TODO-013 FixDistanceCenterlineGenerator P0
+TODO-014 FixNumberCenterlineGenerator P0
 TODO-015 Qt6 OCCT 主窗口骨架
 TODO-016 老图石 Ribbon 外壳与命令映射收口
 TODO-017 STEP Import + TopologyBinding Spike 计划
 TODO-018 Detail 包证据索引与 round-trip policy
 TODO-019 RebarSmart 单位枚举默认值规则
 TODO-020 STEP 导入与水泥灰显示
-TODO-021 Viewer 选择系统
+TODO-020B ShapeStore + TopologyBindingRegistry P0
 TODO-022 DetailPackageReader P0
 TODO-023 DetailPackageWriter round-trip
 TODO-024 极简 Detail 包生成 + autoin 验证
+TODO-021 Viewer 选择系统
+```
+
+说明：
+
+```text
+TODO-013 / TODO-014 的代码文件名仍是 FixDistanceGenerator / FixNumberGenerator，
+但当前能力边界只允许称为 Centerline P0。
 ```
 
 ## 用户可直接粘贴的 Goal 话术
