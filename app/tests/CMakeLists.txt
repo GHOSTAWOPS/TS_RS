@@ -156,6 +156,31 @@ if(TSRS_VCPKG_INSTALLED_DIR)
         ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
 endif()
 
+add_executable(tsrs_topology_binding_registry_tests
+    step/topology_binding_registry_tests.cpp
+)
+
+target_link_libraries(tsrs_topology_binding_registry_tests
+    PRIVATE
+        tsrs_step
+)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR)
+    add_custom_command(TARGET tsrs_topology_binding_registry_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${TSRS_VCPKG_RUNTIME_BIN_DIR}"
+            $<TARGET_FILE_DIR:tsrs_topology_binding_registry_tests>
+        VERBATIM)
+endif()
+
+add_test(NAME tsrs_topology_binding_registry_tests
+    COMMAND $<TARGET_FILE:tsrs_topology_binding_registry_tests>)
+
+if(TSRS_VCPKG_INSTALLED_DIR)
+    set_tests_properties(tsrs_topology_binding_registry_tests PROPERTIES
+        ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
+endif()
+
 add_executable(tsrs_step_import_command_service_tests
     application/step_import_command_service_tests.cpp
 )

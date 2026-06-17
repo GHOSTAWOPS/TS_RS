@@ -129,6 +129,8 @@ target_link_libraries(tsrs_geometry_occt
 
 add_library(tsrs_step STATIC
     src/step/StepImportService.cpp
+    src/step/ShapeStore.cpp
+    src/step/TopologyBindingRegistry.cpp
 )
 
 target_include_directories(tsrs_step

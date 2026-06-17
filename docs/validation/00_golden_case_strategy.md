@@ -113,7 +113,7 @@ Viewer 显示使用 cement-gray，不使用 STEP 原色。
 对应 todo：
 
 ```text
-TODO-021 或后续 TopologyBinding 实现节点。
+TODO-020B
 ```
 
 验收：
@@ -123,6 +123,12 @@ TODO-021 或后续 TopologyBinding 实现节点。
 保存 selectedFaceId / selectedEdgeId。
 重开后恢复到同类拓扑对象。
 fingerprint 和 bbox / length 在容差内。
+```
+
+当前记录：
+
+```text
+docs/validation/golden_cases/GC-002/README.md
 ```
 
 ### GC-003：FixDistance 中心线生成
@@ -181,4 +187,3 @@ P0 建议：
 不要把旧项目【图石钢筋1比1复刻】生成结果当 TS_RS golden 真相。
 不要把未确认 RebarSmart 行为写成 expected。
 ```
-

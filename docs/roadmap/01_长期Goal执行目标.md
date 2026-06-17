@@ -105,22 +105,22 @@ RebarSmart 作为钢筋生成逻辑证据源。
 ## 当前 next
 
 ```text
-TODO-020：
-  STEP 导入与水泥灰显示。
+以 todo.csv 中唯一 status=next 的任务为准。
+当前 next 应为 TODO-022：DetailPackageReader P0。
 ```
 
 目标：
 
 ```text
-打开 STEP/STP，并在 OCCT Viewer 中按 TS_RS 规则统一水泥灰显示。
+读取旧图石 Detail 包样本，建立 P0 统计视图。
 ```
 
 输出：
 
 ```text
-可运行的 STEP/STP 导入入口。
-统一水泥灰显示规则落到 presentation / step 相关实现。
-手动或截图验证记录。
+DetailPackageReader P0。
+读取视图 / 线 / 钢筋组 / 表格等基础数量。
+保守保留未知字段的后续 round-trip 输入条件。
 必要的实现记录、todo.csv / roadmap 更新。
 ```
 
@@ -128,10 +128,10 @@ TODO-020：
 
 ```text
 不实现钢筋业务。
-不实现 Detail。
-不实现完整点 / 边 / 面选择系统。
-不实现 TopologyBinding 保存恢复。
-不把未确认的 RebarSmart 边界行为写成确定结论。
+不接 Viewer。
+不接钢筋生成器。
+不把 Detail 字段反向污染 RebarModel。
+不宣称 CAD 插件兼容已完成。
 ```
 
 TODO-006A 审计已完成：
@@ -239,15 +239,14 @@ TODO-019：
 当前 next：
 
 ```text
-TODO-020B：
-  ShapeStore + TopologyBindingRegistry P0。
+TODO-022：
+  DetailPackageReader P0。
 
 边界：
-  允许修改 step / topology binding 相关代码和测试。
-  不实现钢筋业务。
-  不实现 Detail。
-  不实现完整 Viewer 选择系统。
-  不把真实 Viewer 选择结果接 generator。
+  只改 drawing/detail 相关代码和测试。
+  不接 Viewer。
+  不接钢筋生成器。
+  不把 Detail 字段反向污染 RebarModel。
 ```
 
 中期顺序：
