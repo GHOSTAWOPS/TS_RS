@@ -370,4 +370,7 @@ TS_RS 内部钢筋模型。
 TODO-022：DetailPackageReader P0。
 TODO-023：DetailPackageWriter round-trip。
 TODO-024：极简 Detail 包生成 + autoin 人工验证。
+  -> 代码侧生成已完成。
+  -> GC-004 固定验证包已提交。
+  -> autoin 人工验证未闭合。
 ```

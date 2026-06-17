@@ -160,6 +160,18 @@ P0 只验收中心线，不验收完整投影、过孔、弯钩、实体化。
 TODO-024
 ```
 
+当前代码侧输入：
+
+```text
+docs/validation/golden_cases/GC-004/minimal_detail_package/
+```
+
+当前状态：
+
+```text
+blocked_waiting_manual_autoin
+```
+
 验收：
 
 ```text

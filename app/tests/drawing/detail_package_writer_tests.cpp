@@ -8,10 +8,20 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
+#include <locale>
 #include <optional>
 #include <string>
 
 namespace {
+
+class CommaDecimalNumpunct final : public std::numpunct<char> {
+protected:
+    [[nodiscard]] char do_decimal_point() const override
+    {
+        return ',';
+    }
+};
 
 int fail(const std::string& message)
 {
@@ -50,6 +60,23 @@ std::filesystem::path locateTodo66Fixture()
     std::filesystem::path cursor = std::filesystem::current_path();
     for (int depth = 0; depth < 8; ++depth) {
         const std::filesystem::path candidate = cursor / "docs" / "phase1" / "todo66";
+        if (std::filesystem::exists(candidate / "Detail01.stl")) {
+            return candidate;
+        }
+        if (!cursor.has_parent_path() || cursor == cursor.parent_path()) {
+            break;
+        }
+        cursor = cursor.parent_path();
+    }
+    return {};
+}
+
+std::filesystem::path locateGc004Fixture()
+{
+    std::filesystem::path cursor = std::filesystem::current_path();
+    for (int depth = 0; depth < 8; ++depth) {
+        const std::filesystem::path candidate =
+            cursor / "docs" / "validation" / "golden_cases" / "GC-004" / "minimal_detail_package";
         if (std::filesystem::exists(candidate / "Detail01.stl")) {
             return candidate;
         }
@@ -255,6 +282,179 @@ int expectTodo66PreserveModeRoundTrip()
     return 0;
 }
 
+int expectMinimalSectionLinePackageGeneration()
+{
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_minimal_section_line_output");
+
+    tsrs::detail::DetailMinimalSectionLinePackage request;
+    request.drawingName = "TS_RS minimal <section> & line \"quote\" 'apostrophe' >";
+    request.sectionLine.startX = 10.0;
+    request.sectionLine.startY = 20.0;
+    request.sectionLine.endX = 110.5;
+    request.sectionLine.endY = 220.25;
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writeMinimalSectionLinePackage(request, outputDir.string());
+    if (!writeResult.ok()) {
+        return fail("expected minimal section-line writer to finish without error diagnostics");
+    }
+    if (writeResult.filesWritten != 2) {
+        return fail("expected minimal section-line writer to report two written files");
+    }
+    if (readTextFile(outputDir / "Detail.xml") != "<StyleRoot/>\n") {
+        return fail("expected minimal package to write StyleRoot placeholder");
+    }
+
+    const std::string sheetXml = readTextFile(outputDir / "Detail01.stl");
+    if (sheetXml.find("<DrawingRoot>") == std::string::npos
+        || sheetXml.find("<section-line>") == std::string::npos
+        || sheetXml.find("<Line1 start_x=\"10\" start_y=\"20\" end_x=\"110.5\" end_y=\"220.25\"")
+            == std::string::npos
+        || sheetXml.find("DrawingName=\"TS_RS minimal &lt;section&gt; &amp; line &quot;quote&quot; &apos;apostrophe&apos; &gt;\"")
+            == std::string::npos) {
+        return fail("expected minimal Detail01.stl to contain escaped drawing name and one section Line1");
+    }
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot generatedPackage =
+        reader.readDirectory(outputDir.string());
+    if (!generatedPackage.ok() || generatedPackage.files.size() != 2) {
+        return fail("expected generated minimal package to be readable");
+    }
+
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet =
+        findFile(generatedPackage, "Detail01.stl");
+    if (!sheet || sheet->rootName != "DrawingRoot") {
+        return fail("expected generated Detail01.stl root to be DrawingRoot");
+    }
+    if (sheet->knownSummary.viewPortCount != 1
+        || sheet->knownSummary.partDetailDrawingCount != 1
+        || sheet->knownSummary.sectionLineCount != 1) {
+        return fail("expected generated package to contain one viewport, one part drawing, one section line");
+    }
+    return 0;
+}
+
+int expectMinimalSectionLineRejectsNonFiniteCoordinates()
+{
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_minimal_invalid_output");
+
+    const double invalidValues[] = {
+        std::numeric_limits<double>::quiet_NaN(),
+        std::numeric_limits<double>::infinity(),
+        -std::numeric_limits<double>::infinity(),
+    };
+
+    for (const double invalidValue : invalidValues) {
+        std::filesystem::remove_all(outputDir);
+        tsrs::detail::DetailMinimalSectionLinePackage request;
+        request.sectionLine.startX = invalidValue;
+
+        const tsrs::detail::DetailPackageWriter writer;
+        const tsrs::detail::DetailPackageWriteResult writeResult =
+            writer.writeMinimalSectionLinePackage(request, outputDir.string());
+
+        if (writeResult.ok()) {
+            return fail("expected minimal section-line writer to reject non-finite coordinates");
+        }
+        if (std::filesystem::exists(outputDir / "Detail.xml")
+            || std::filesystem::exists(outputDir / "Detail01.stl")) {
+            return fail("expected invalid minimal section-line request not to write package files");
+        }
+    }
+    return 0;
+}
+
+int expectMinimalSectionLineUsesClassicNumberLocale()
+{
+    const std::locale previousLocale = std::locale();
+    std::locale::global(std::locale(std::locale::classic(), new CommaDecimalNumpunct));
+
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_locale_output");
+
+    tsrs::detail::DetailMinimalSectionLinePackage request;
+    request.sectionLine.startX = 10.5;
+    request.sectionLine.startY = 20.25;
+    request.sectionLine.endX = 110.75;
+    request.sectionLine.endY = 220.125;
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writeMinimalSectionLinePackage(request, outputDir.string());
+
+    std::locale::global(previousLocale);
+
+    if (!writeResult.ok()) {
+        return fail("expected locale probe minimal writer to succeed");
+    }
+    const std::string sheetXml = readTextFile(outputDir / "Detail01.stl");
+    if (sheetXml.find("start_x=\"10.5\"") == std::string::npos
+        || sheetXml.find("start_x=\"10,5\"") != std::string::npos) {
+        return fail("expected minimal writer to use classic decimal point regardless of global locale");
+    }
+    return 0;
+}
+
+int expectCheckedInGc004FixtureIsReadable()
+{
+    const std::filesystem::path fixture = locateGc004Fixture();
+    if (fixture.empty()) {
+        return fail("expected checked-in GC-004 minimal Detail package fixture");
+    }
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot package =
+        reader.readDirectory(fixture.string());
+    if (!package.ok() || package.files.size() != 2) {
+        return fail("expected checked-in GC-004 fixture to be a readable two-file Detail package");
+    }
+
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet =
+        findFile(package, "Detail01.stl");
+    if (!sheet
+        || sheet->knownSummary.viewPortCount != 1
+        || sheet->knownSummary.partDetailDrawingCount != 1
+        || sheet->knownSummary.sectionLineCount != 1) {
+        return fail("expected checked-in GC-004 fixture to contain one section-line");
+    }
+    return 0;
+}
+
+int expectCheckedInGc004FixtureMatchesWriterOutput()
+{
+    const std::filesystem::path fixture = locateGc004Fixture();
+    if (fixture.empty()) {
+        return fail("expected checked-in GC-004 minimal Detail package fixture");
+    }
+
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_gc004_compare_output");
+
+    tsrs::detail::DetailMinimalSectionLinePackage request;
+    request.drawingName = "TS_RS GC-004 minimal section line";
+    request.sectionLine.startX = 10.0;
+    request.sectionLine.startY = 20.0;
+    request.sectionLine.endX = 110.5;
+    request.sectionLine.endY = 220.25;
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writeMinimalSectionLinePackage(request, outputDir.string());
+    if (!writeResult.ok()) {
+        return fail("expected writer to generate GC-004 comparison package");
+    }
+
+    if (readTextFile(outputDir / "Detail.xml") != readTextFile(fixture / "Detail.xml")
+        || readTextFile(outputDir / "Detail01.stl") != readTextFile(fixture / "Detail01.stl")) {
+        return fail("expected checked-in GC-004 fixture to match writer output");
+    }
+    return 0;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -270,6 +470,21 @@ int main(int argc, char** argv)
             return code;
         }
         if (const int code = expectWriterRejectsUnsafeFileName()) {
+            return code;
+        }
+        if (const int code = expectMinimalSectionLinePackageGeneration()) {
+            return code;
+        }
+        if (const int code = expectMinimalSectionLineRejectsNonFiniteCoordinates()) {
+            return code;
+        }
+        if (const int code = expectMinimalSectionLineUsesClassicNumberLocale()) {
+            return code;
+        }
+        if (const int code = expectCheckedInGc004FixtureIsReadable()) {
+            return code;
+        }
+        if (const int code = expectCheckedInGc004FixtureMatchesWriterOutput()) {
             return code;
         }
     } catch (const std::exception& exception) {

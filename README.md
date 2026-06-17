@@ -25,10 +25,12 @@ RebarSmart 作为钢筋生成逻辑的证据源。
 ```text
 TODO-020 已完成：真实 STEP/STP 导入与水泥灰显示。
 TODO-020B 已完成：ShapeStore + TopologyBindingRegistry P0 library。
-当前 next：TODO-022 DetailPackageReader P0。
+TODO-022 已完成：DetailPackageReader P0。
+TODO-023 已完成：DetailPackageWriter preserve-mode round-trip。
+TODO-024 代码侧已完成：极简 Detail 包和 GC-004 固定验证输入。
 
 P0A 最小真实闭环尚未放行。
-Detail 兼容尚未放行，必须等 TODO-024 autoin 人工验证。
+Detail 兼容尚未放行，TODO-024 等待旧 AutoCAD 插件 autoin 人工验证。
 TODO-021 Viewer 选择系统继续后置，不能抢跑接 generator。
 ```
 

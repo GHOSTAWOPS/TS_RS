@@ -4,7 +4,9 @@
 #include <QString>
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
+#include <locale>
 #include <sstream>
 #include <string>
 
@@ -50,6 +52,93 @@ bool writeRawXmlFile(const std::filesystem::path& path, const std::string& rawXm
     }
     return file.write(rawXml.data(), static_cast<qint64>(rawXml.size()))
         == static_cast<qint64>(rawXml.size());
+}
+
+std::string xmlEscaped(const std::string& value)
+{
+    std::string escaped;
+    escaped.reserve(value.size());
+    for (const char ch : value) {
+        switch (ch) {
+        case '&':
+            escaped += "&amp;";
+            break;
+        case '<':
+            escaped += "&lt;";
+            break;
+        case '>':
+            escaped += "&gt;";
+            break;
+        case '"':
+            escaped += "&quot;";
+            break;
+        case '\'':
+            escaped += "&apos;";
+            break;
+        default:
+            escaped += ch;
+            break;
+        }
+    }
+    return escaped;
+}
+
+std::string formatDetailNumber(double value)
+{
+    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    stream.precision(15);
+    stream << value;
+    return stream.str();
+}
+
+bool isFiniteLine(const tsrs::detail::DetailSectionLine2d& line)
+{
+    return std::isfinite(line.startX)
+        && std::isfinite(line.startY)
+        && std::isfinite(line.endX)
+        && std::isfinite(line.endY);
+}
+
+std::string minimalStyleXml()
+{
+    return "<StyleRoot/>\n";
+}
+
+std::string minimalSheetXml(const tsrs::detail::DetailMinimalSectionLinePackage& package)
+{
+    const tsrs::detail::DetailSectionLine2d& line = package.sectionLine;
+    std::ostringstream stream;
+    stream
+        << "<DrawingRoot>\n"
+        << "  <HViewPorts>\n"
+        << "    <ViewPort>\n"
+        << "      <PartDetailDrawing num=\"1\">\n"
+        << "        <General-Info DrawingName=\"" << xmlEscaped(package.drawingName)
+        << "\" DrawingUnit=\"mm\" DrawingScale=\"1\" GeneralScale=\"1\"/>\n"
+        << "        <continue-line><lines/></continue-line>\n"
+        << "        <hidden-line><lines/></hidden-line>\n"
+        << "        <central-line><lines/></central-line>\n"
+        << "        <section-line>\n"
+        << "          <lines>\n"
+        << "            <Line1 start_x=\"" << formatDetailNumber(line.startX)
+        << "\" start_y=\"" << formatDetailNumber(line.startY)
+        << "\" end_x=\"" << formatDetailNumber(line.endX)
+        << "\" end_y=\"" << formatDetailNumber(line.endY)
+        << "\" ZValue=\"0 0 0\"/>\n"
+        << "          </lines>\n"
+        << "        </section-line>\n"
+        << "        <hatch-line><lines/></hatch-line>\n"
+        << "        <Others/>\n"
+        << "        <steeljoint-line><lines/></steeljoint-line>\n"
+        << "      </PartDetailDrawing>\n"
+        << "      <StbDetailDrawing>\n"
+        << "        <StbGroups stbGroupCount=\"0\"/>\n"
+        << "      </StbDetailDrawing>\n"
+        << "    </ViewPort>\n"
+        << "  </HViewPorts>\n"
+        << "</DrawingRoot>\n";
+    return stream.str();
 }
 
 bool isSafePackageFileName(const std::string& fileName)
@@ -221,6 +310,89 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
                     + (after ? ",rawAttrs=" + std::to_string(after->rawAttributes.size()) : "")
                     + (after ? ",unknownChildren=" + std::to_string(after->unknownChildren.size()) : "")
                     + "}"));
+        }
+    }
+
+    return result;
+}
+
+DetailPackageWriteResult DetailPackageWriter::writeMinimalSectionLinePackage(
+    const DetailMinimalSectionLinePackage& package,
+    const std::string& targetDirectory) const
+{
+    DetailPackageWriteResult result;
+    result.targetDirectory = targetDirectory;
+
+    if (!isFiniteLine(package.sectionLine)) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            "Detail01.stl",
+            1,
+            "Minimal section-line coordinates must be finite numbers."));
+        return result;
+    }
+
+    const std::filesystem::path target(targetDirectory);
+    std::error_code error;
+    std::filesystem::create_directories(target, error);
+    if (error) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            {},
+            -1,
+            "Failed to create Detail output directory: " + error.message()));
+        return result;
+    }
+
+    const std::string styleXml = minimalStyleXml();
+    const std::string sheetXml = minimalSheetXml(package);
+    if (!writeRawXmlFile(target / "Detail.xml", styleXml)) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            "Detail.xml",
+            -1,
+            "Failed to write minimal Detail.xml."));
+        return result;
+    }
+    ++result.filesWritten;
+
+    if (!writeRawXmlFile(target / "Detail01.stl", sheetXml)) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            "Detail01.stl",
+            1,
+            "Failed to write minimal Detail01.stl."));
+        return result;
+    }
+    ++result.filesWritten;
+
+    const DetailPackageReader reader;
+    const DetailPackageSnapshot writtenPackage = reader.readDirectory(targetDirectory);
+    const DetailFileSnapshot* sheet = findFile(writtenPackage, "Detail01.stl");
+    if (!writtenPackage.ok()
+        || writtenPackage.files.size() != 2
+        || !sheet
+        || sheet->knownSummary.viewPortCount != 1
+        || sheet->knownSummary.partDetailDrawingCount != 1
+        || sheet->knownSummary.sectionLineCount != 1) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteValidateFailed,
+            "error",
+            "Detail01.stl",
+            1,
+            "Generated minimal Detail package failed reader validation."));
+        for (const DetailDiagnostic& diagnostic : writtenPackage.diagnostics) {
+            result.diagnostics.push_back(diagnostic);
+        }
+        for (const DetailFileSnapshot& file : writtenPackage.files) {
+            result.diagnostics.insert(
+                result.diagnostics.end(),
+                file.diagnostics.begin(),
+                file.diagnostics.end());
         }
     }
 

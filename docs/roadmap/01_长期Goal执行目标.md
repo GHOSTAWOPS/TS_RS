@@ -91,6 +91,9 @@ RebarSmart 作为钢筋生成逻辑证据源。
 3. commit 前必须执行 xhigh 只读 review。
 4. Critical / Important 必须修复，或写明技术反驳理由。
 5. 子代理完成后必须关闭。
+6. commit / annotated tag / push 后，按外部高级 AI 审查规则打包并执行 web-gpt-pro-review。
+7. 外部审查若出现 Critical / Important，必须先技术核验，再修复或写明反驳理由。
+8. 外部审查修复完成后，追加 follow-up commit / tag / push，并在必要时复审。
 ```
 
 如果当前 next 是只读审计或文档节点：
@@ -100,20 +103,101 @@ RebarSmart 作为钢筋生成逻辑证据源。
 2. 需要时可使用 xhigh 只读 review。
 3. 输出结论必须落到 docs/。
 4. todo.csv 必须推进到下一个明确节点。
+5. 若节点影响路线、架构或关键门禁，也要打包交给 web-gpt-pro-review 外部高级 AI 审查。
 ```
 
-## 当前 next
+## 外部高级 AI 审查规则
+
+TS_RS 的 P0 / 架构 / 协议 / 真实环境门禁节点，除本地测试和 xhigh 只读 review 外，
+还必须在节点 checkpoint 后执行 Web GPT Pro 外部审查。
+
+触发条件：
 
 ```text
-以 todo.csv 中唯一 status=next 的任务为准。
-当前 next 应为 TODO-024：极简 Detail 包生成 + autoin 验证。
+1. P0 代码节点。
+2. Detail / STEP / TopologyBinding / CommandService / RebarModel / .tsrebar 等共享边界节点。
+3. 路线、ADR、长期 goal、todo 顺序发生实质调整。
+4. 用户明确要求外部高级 AI 审查。
+```
+
+执行顺序：
+
+```text
+1. 本地实现完成。
+2. 相关测试通过。
+3. 默认 CTest 通过。
+4. xhigh 只读 review 通过；子代理完成后关闭。
+5. commit。
+6. 打 annotated tag。
+7. push main 和 tag。
+8. 生成 external_review_packages/ 或 review_packages/ 下的审查包。
+9. 审查包必须包含：
+   - README_REVIEW.md
+   - EXTERNAL_REVIEW_PROMPT.md
+   - 当前 commit / tag / GitHub URL
+   - 关键源码、测试、文档
+   - git/head_full_patch.txt
+   - git/head_stat.txt
+   - 验证命令与结果
+   - todo.csv 当前状态
+10. 使用 web-gpt-pro-review skill 发送到用户指定的 ChatGPT 对话。
+11. 等待外部审查完成，不重复刷新，不重复发送。
+12. 将外部审查结果落到 docs/external_reviews/。
+13. 审查记录 md 必须包含：
+   - 审查时间
+   - 审查 todo / commit / tag
+   - ChatGPT 对话 URL
+   - 上传审查包路径
+   - 外部审查原文或关键摘录
+   - Critical / Important / Minor 清单
+   - 每条审查 TODO 的处理状态：fixed / rebutted / deferred / blocked
+   - 修复 commit / tag（如有）
+14. Critical / Important 必须修复或写明技术反驳理由。
+```
+
+web-gpt-pro-review 固定要求：
+
+```text
+0. 默认外部审查对话：
+   https://chatgpt.com/c/6a28c1d7-c50c-83ec-8bf4-29c4df9ea152
+1. 使用用户当前登录的普通 Chrome。
+2. 使用 Chrome DevTools MCP 控制当前 Chrome，不默认使用 agent-browser。
+3. 上传路径优先使用 ChatGPT 原生：
+   + / 添加文件等 -> 添加照片和文件。
+4. 上传前核对 ChatGPT URL conversation id。
+5. 不上传额外文件。
+6. 不在回答生成中刷新页面或重发。
+7. 首次等待 5 分钟再检查状态；之后每 3 分钟检查一次。
+8. 抽取最新 assistant 回复，不混合旧回复。
+```
+
+外部审查提示词必须要求：
+
+```text
+1. 不要总结，要挑刺。
+2. 按 Critical / Important / Minor 输出。
+3. 每条问题给出证据、影响、建议。
+4. 明确路线是否偏离。
+5. 明确是否允许进入下一个 todo 节点。
+6. 明确哪些必须在下一步前修复，哪些可以后置。
+```
+
+## 当前状态
+
+```text
+正常情况下以 todo.csv 中唯一 status=next 的任务为准。
+当前没有 next。
+TODO-024 处于 blocked：
+代码侧极简 Detail 包生成已完成，
+但还需要旧 AutoCAD 插件 autoin 人工验证。
 ```
 
 目标：
 
 ```text
-Reader -> Writer 输出结构数量一致，
-并保守保留未知字段。
+先闭合 Detail 兼容出口的真实环境证据。
+GC-004 autoin 人工验证通过前，
+不推进依赖 TODO-024 的后续节点。
 ```
 
 已完成：
@@ -124,20 +208,24 @@ TODO-022 DetailPackageReader P0。
 已读取 Detail.xml + Detail01..04.stl。
 已保留 rawXml / 原文件名 / sheetIndex。
 已输出 knownSummary 统计。
-未写 Detail 包。
-未接 Viewer。
-未映射 DrawingModel / RebarModel。
+
+TODO-023 DetailPackageWriter round-trip。
+Reader -> Writer preserve-mode rawXml passthrough 已完成。
+写出后 Reader 能再读。
+文件数量、knownSummary、未知节点 / 属性 P0 统计不减少。
+
+TODO-024 极简 Detail 包生成。
+代码侧 Detail.xml + Detail01.stl 已生成。
+GC-004 固定验证包已提交。
+autoin 人工验证未闭合。
 ```
 
 输出：
 
 ```text
-DetailPackageWriter round-trip P0。
-Reader -> Writer 保守回写旧包。
-写出后 Reader 能再读。
-文件数量、rootName、knownSummary 关键统计一致。
-未知节点 / 未知属性不减少。
-必要的实现记录、todo.csv / roadmap 更新。
+docs/architecture/18_TODO-023_DetailPackageWriterRoundTrip实现记录.md
+docs/architecture/19_TODO-024_MinimalDetailPackage实现记录.md
+docs/validation/golden_cases/GC-004/
 ```
 
 边界：
@@ -148,7 +236,6 @@ Reader -> Writer 保守回写旧包。
 不接钢筋生成器。
 不把 Detail 字段反向污染 RebarModel。
 不创建 DrawingModel / RebarModel 映射。
-只做 preserve-mode round-trip，不做 minimal generate。
 不宣称 CAD 插件兼容已完成。
 ```
 
@@ -260,15 +347,9 @@ TODO-022：
   docs/legal/00_reverse_engineering_and_resource_reuse_boundary.md
 ```
 
-当前 next：
+当前阻塞节点：
 
 ```text
-TODO-023：
-  DetailPackageWriter round-trip。
-
-输出：
-  docs/architecture/18_TODO-023_DetailPackageWriterRoundTrip实现记录.md
-
 TODO-024：
   极简 Detail 包生成 + autoin 验证。
 
@@ -278,6 +359,14 @@ TODO-024：
   不接钢筋生成器。
   不把 Detail 字段反向污染 RebarModel。
   需要旧 AutoCAD 插件 autoin 人工验证。
+
+代码侧输出：
+  docs/architecture/19_TODO-024_MinimalDetailPackage实现记录.md
+  docs/validation/golden_cases/GC-004/
+
+当前阻塞：
+  GC-004 minimal_detail_package 尚未由旧 AutoCAD 插件 autoin 人工验证。
+  验证通过前 todo.csv 不设置下一个 next。
 ```
 
 中期顺序：
@@ -351,17 +440,18 @@ todo.csv
 xhigh 只能 review，不能修改；主流程 agent 负责修改。
 子代理完成后必须关闭。
 完成后更新文档、todo.csv，运行验证，commit，打 annotated tag，push。
+P0 / 架构 / 协议 / 真实环境门禁节点推送后，必须打审查包并用 web-gpt-pro-review 交给外部高级 AI 审查。
+外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 应为 TODO-023：DetailPackageWriter round-trip。
+如果 todo.csv 没有 next 且 TODO-024 为 blocked，
+说明必须先完成旧 AutoCAD 插件 autoin 人工验证。
 
-TODO-023 边界：
-只改 drawing/detail 相关代码和测试。
-Reader -> Writer 保守回写旧包。
-写出后 Reader 能再读，关键统计一致。
-不做 minimal generate。
-不接 Viewer。
-不接钢筋生成器。
-不创建 DrawingModel / RebarModel 映射。
-不宣称 CAD 插件兼容已完成。
+TODO-024 blocked 处理：
+使用 docs/validation/golden_cases/GC-004/minimal_detail_package/
+在旧 AutoCAD 插件中执行 autoin。
+验证通过后回填 GC-004 README，
+再将 TODO-024 改为 done，并设置 TODO-020D 为 next。
+验证失败则记录错误提示和截图，
+下一轮只补最小缺失 Detail 字段。
 ```
