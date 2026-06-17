@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <optional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -100,6 +101,8 @@ tsrs::detail::DetailDiagnostic makeDiagnostic(
     std::string severity,
     std::string fileName,
     int sheetIndex,
+    int line,
+    int column,
     std::string nodePath,
     std::string message)
 {
@@ -108,6 +111,8 @@ tsrs::detail::DetailDiagnostic makeDiagnostic(
     diagnostic.severity = std::move(severity);
     diagnostic.fileName = std::move(fileName);
     diagnostic.sheetIndex = sheetIndex;
+    diagnostic.line = line;
+    diagnostic.column = column;
     diagnostic.nodePath = std::move(nodePath);
     diagnostic.message = std::move(message);
     return diagnostic;
@@ -122,15 +127,23 @@ std::string readRawFile(const std::filesystem::path& path)
     return file.readAll().toStdString();
 }
 
-int sheetIndexFromName(const std::string& fileName)
+std::optional<int> sheetIndexFromName(const std::string& fileName)
 {
-    if (!startsWith(fileName, "Detail") || fileName.size() < 12) {
-        return -1;
+    if (!startsWith(fileName, "Detail")) {
+        return std::nullopt;
     }
-    const std::string digits = fileName.substr(6, 2);
-    if (!std::isdigit(static_cast<unsigned char>(digits[0]))
-        || !std::isdigit(static_cast<unsigned char>(digits[1]))) {
-        return -1;
+    const std::size_t dot = fileName.rfind('.');
+    if (dot == std::string::npos || dot <= 6) {
+        return std::nullopt;
+    }
+    const std::string digits = fileName.substr(6, dot - 6);
+    if (digits.empty()) {
+        return std::nullopt;
+    }
+    for (const char digit : digits) {
+        if (!std::isdigit(static_cast<unsigned char>(digit))) {
+            return std::nullopt;
+        }
     }
     return std::stoi(digits);
 }
@@ -154,8 +167,12 @@ void countKnownElement(
         ++summary.materialTableCount;
     } else if (startsWith(name, "MatRow")) {
         ++summary.matRowCount;
+    } else if (name == "StbGroups") {
+        ++summary.stbGroupElementCount;
+        ++summary.stbGroupsContainerCount;
     } else if (startsWith(name, "StbGroup")) {
         ++summary.stbGroupElementCount;
+        ++summary.stbGroupEntryCount;
     } else if (startsWith(name, "Std")) {
         ++summary.stdElementCount;
     } else if (startsWith(name, "StbGeo")) {
@@ -188,7 +205,7 @@ tsrs::detail::DetailFileSnapshot readXmlFile(const std::filesystem::path& path, 
     snapshot.sheetIndex = sheetIndex;
     snapshot.rawXml = readRawFile(path);
 
-    QXmlStreamReader xml(QString::fromStdString(snapshot.rawXml));
+    QXmlStreamReader xml(QByteArray::fromStdString(snapshot.rawXml));
     std::vector<std::string> pathStack;
 
     while (!xml.atEnd()) {
@@ -204,12 +221,21 @@ tsrs::detail::DetailFileSnapshot readXmlFile(const std::filesystem::path& path, 
 
             const QXmlStreamAttributes attributes = xml.attributes();
             for (const QXmlStreamAttribute& attribute : attributes) {
-                snapshot.rawAttributes.push_back(
-                    nodePathOf(pathStack) + "/@" + toUtf8(attribute.name().toString()));
+                tsrs::detail::DetailRawAttribute rawAttribute;
+                rawAttribute.nodePath = nodePathOf(pathStack);
+                rawAttribute.name = toUtf8(attribute.name().toString());
+                rawAttribute.value = toUtf8(attribute.value().toString());
+                rawAttribute.namespaceUri = toUtf8(attribute.namespaceUri().toString());
+                rawAttribute.qualifiedName = toUtf8(attribute.qualifiedName().toString());
+                snapshot.rawAttributes.push_back(std::move(rawAttribute));
             }
 
             if (!isKnownDetailElement(name)) {
-                snapshot.unknownChildren.push_back(nodePathOf(pathStack));
+                tsrs::detail::DetailUnknownChild unknownChild;
+                unknownChild.nodePath = nodePathOf(pathStack);
+                unknownChild.name = name;
+                unknownChild.namespaceUri = toUtf8(xml.namespaceUri().toString());
+                snapshot.unknownChildren.push_back(std::move(unknownChild));
             }
         } else if (xml.isEndElement() && !pathStack.empty()) {
             pathStack.pop_back();
@@ -222,6 +248,8 @@ tsrs::detail::DetailFileSnapshot readXmlFile(const std::filesystem::path& path, 
             "error",
             snapshot.fileName,
             snapshot.sheetIndex,
+            static_cast<int>(xml.lineNumber()),
+            static_cast<int>(xml.columnNumber()),
             nodePathOf(pathStack),
             toUtf8(xml.errorString())));
     }
@@ -234,6 +262,8 @@ tsrs::detail::DetailFileSnapshot readXmlFile(const std::filesystem::path& path, 
             "warning",
             snapshot.fileName,
             snapshot.sheetIndex,
+            -1,
+            -1,
             "/" + snapshot.rootName,
             "Unexpected Detail XML root: " + snapshot.rootName));
     }
@@ -253,12 +283,17 @@ std::vector<std::filesystem::path> sortedSheetFiles(const std::filesystem::path&
         const std::string fileName = fileNameOf(path);
         if (startsWith(fileName, "Detail")
             && extensionLower(path) == ".stl"
-            && sheetIndexFromName(fileName) > 0) {
+            && sheetIndexFromName(fileName).value_or(-1) > 0) {
             files.push_back(path);
         }
     }
 
     std::sort(files.begin(), files.end(), [](const auto& lhs, const auto& rhs) {
+        const int lhsIndex = sheetIndexFromName(fileNameOf(lhs)).value_or(-1);
+        const int rhsIndex = sheetIndexFromName(fileNameOf(rhs)).value_or(-1);
+        if (lhsIndex != rhsIndex) {
+            return lhsIndex < rhsIndex;
+        }
         return fileNameOf(lhs) < fileNameOf(rhs);
     });
     return files;
@@ -295,6 +330,8 @@ DetailPackageSnapshot DetailPackageReader::readDirectory(const std::string& dire
             "error",
             {},
             -1,
+            -1,
+            -1,
             {},
             "Detail package directory does not exist: " + directory.string()));
         return package;
@@ -309,6 +346,8 @@ DetailPackageSnapshot DetailPackageReader::readDirectory(const std::string& dire
             "error",
             "Detail.xml",
             -1,
+            -1,
+            -1,
             {},
             "Detail.xml is missing."));
     }
@@ -320,6 +359,8 @@ DetailPackageSnapshot DetailPackageReader::readDirectory(const std::string& dire
             "error",
             {},
             -1,
+            -1,
+            -1,
             {},
             "No DetailNN.stl sheet files found."));
         return package;
@@ -327,13 +368,15 @@ DetailPackageSnapshot DetailPackageReader::readDirectory(const std::string& dire
 
     int expectedSheetIndex = 1;
     for (const std::filesystem::path& sheetPath : sheets) {
-        const int sheetIndex = sheetIndexFromName(fileNameOf(sheetPath));
+        const int sheetIndex = sheetIndexFromName(fileNameOf(sheetPath)).value_or(-1);
         if (sheetIndex != expectedSheetIndex) {
             package.diagnostics.push_back(makeDiagnostic(
                 kDetailDiagnosticSheetIndexGap,
                 "warning",
                 fileNameOf(sheetPath),
                 sheetIndex,
+                -1,
+                -1,
                 {},
                 "Detail sheet index is not contiguous."));
             expectedSheetIndex = sheetIndex;

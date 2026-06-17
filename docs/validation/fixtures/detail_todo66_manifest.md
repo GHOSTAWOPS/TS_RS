@@ -54,3 +54,15 @@ B. Reader tests used a repo-local sanitized fixture derived from this manifest.
 ```
 
 Synthetic XML tests may exist, but they cannot be the only evidence for `TODO-022`.
+
+## CTest behavior
+
+The local fixture probe is registered separately:
+
+```text
+tsrs_detail_package_reader_todo66_fixture_probe
+```
+
+If the local fixture is missing, the probe returns `77`, and CTest records it as skipped.
+This is intentional: missing real evidence must be visible and must not be counted as a
+normal passing assertion.

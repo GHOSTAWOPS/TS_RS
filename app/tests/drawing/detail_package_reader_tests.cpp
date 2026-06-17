@@ -158,6 +158,8 @@ int expectSyntheticPackageRead()
         || sheet->knownSummary.partDetailDrawingCount != 1
         || sheet->knownSummary.sectionLineCount != 1
         || sheet->knownSummary.stbGroupElementCount != 2
+        || sheet->knownSummary.stbGroupsContainerCount != 1
+        || sheet->knownSummary.stbGroupEntryCount != 1
         || sheet->knownSummary.stdElementCount != 1
         || sheet->knownSummary.stbGeoElementCount != 1
         || sheet->knownSummary.faceEdgeCount != 1) {
@@ -167,6 +169,24 @@ int expectSyntheticPackageRead()
         || sheet->unknownChildren.empty()
         || sheet->rawAttributes.empty()) {
         return fail("expected raw XML, unknown child names, and raw attributes to be preserved");
+    }
+    bool sawCustomRootValue = false;
+    bool sawCustomNode = false;
+    for (const tsrs::detail::DetailRawAttribute& attribute : sheet->rawAttributes) {
+        if (attribute.nodePath == "/DrawingRoot"
+            && attribute.name == "customRoot"
+            && attribute.value == "keep") {
+            sawCustomRootValue = true;
+        }
+    }
+    for (const tsrs::detail::DetailUnknownChild& unknown : sheet->unknownChildren) {
+        if (unknown.nodePath == "/DrawingRoot/HViewPorts/ViewPort/PartDetailDrawing/CustomNode"
+            && unknown.name == "CustomNode") {
+            sawCustomNode = true;
+        }
+    }
+    if (!sawCustomRootValue || !sawCustomNode) {
+        return fail("expected raw attribute values and unknown child names to be structured");
     }
     return 0;
 }
@@ -188,12 +208,80 @@ int expectMissingPackageDiagnostic()
     return 0;
 }
 
+int expectMalformedXmlDiagnosticHasLineColumn()
+{
+    const std::filesystem::path dir =
+        makeTempDirectory("tsrs_detail_package_reader_malformed");
+    writeTextFile(dir / "Detail.xml", "<StyleRoot/>");
+    writeTextFile(dir / "Detail01.stl", "<DrawingRoot>\n  <HViewPorts>\n</DrawingRoot>");
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot package = reader.readDirectory(dir.string());
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet =
+        findFile(package, "Detail01.stl");
+    if (!sheet) {
+        return fail("expected malformed Detail01.stl snapshot");
+    }
+    if (sheet->ok()) {
+        return fail("expected malformed XML file snapshot to be an error");
+    }
+    if (sheet->diagnostics.empty()
+        || sheet->diagnostics.front().code
+            != tsrs::detail::kDetailDiagnosticXmlParseFailed) {
+        return fail("expected malformed XML parse diagnostic");
+    }
+    if (sheet->diagnostics.front().line <= 0 || sheet->diagnostics.front().column <= 0) {
+        return fail("expected XML parse diagnostic to include line and column");
+    }
+    return 0;
+}
+
+int expectSheetNameParsingAndGapDiagnostics()
+{
+    const std::filesystem::path dir =
+        makeTempDirectory("tsrs_detail_package_reader_sheet_names");
+    writeTextFile(dir / "Detail.xml", "<StyleRoot/>");
+    writeTextFile(dir / "Detail1.stl", "<DrawingRoot/>");
+    writeTextFile(dir / "Detail03.stl", "<DrawingRoot/>");
+    writeTextFile(dir / "Detail100.stl", "<DrawingRoot/>");
+    writeTextFile(dir / "DetailA.stl", "<DrawingRoot/>");
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot package = reader.readDirectory(dir.string());
+    if (!package.ok()) {
+        return fail("expected sheet name package to read without error diagnostics");
+    }
+    if (package.files.size() != 4) {
+        return fail("expected style plus three numeric Detail sheet snapshots");
+    }
+
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet1 =
+        findFile(package, "Detail1.stl");
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet3 =
+        findFile(package, "Detail03.stl");
+    const std::optional<tsrs::detail::DetailFileSnapshot> sheet100 =
+        findFile(package, "Detail100.stl");
+    if (!sheet1 || !sheet3 || !sheet100
+        || sheet1->sheetIndex != 1
+        || sheet3->sheetIndex != 3
+        || sheet100->sheetIndex != 100) {
+        return fail("expected numeric sheet indices to parse from full Detail<number>.stl stem");
+    }
+    if (findFile(package, "DetailA.stl")) {
+        return fail("expected non-numeric DetailA.stl to be ignored");
+    }
+    if (!hasDiagnostic(package.diagnostics, tsrs::detail::kDetailDiagnosticSheetIndexGap)) {
+        return fail("expected sheet index gap warning for non-contiguous numeric sheets");
+    }
+    return 0;
+}
+
 int expectTodo66ManifestFixture()
 {
     const std::filesystem::path fixture = locateTodo66Fixture();
     if (fixture.empty() || !std::filesystem::exists(fixture / "Detail01.stl")) {
         std::cout << "todo66 Detail fixture not found; local manifest probe skipped.\n";
-        return 0;
+        return 77;
     }
 
     const std::unordered_map<std::string, std::string> expectedHashes = {
@@ -231,16 +319,18 @@ int expectTodo66ManifestFixture()
         int matRows;
         int sectionLines;
         int stbGroups;
+        int stbGroupsContainers;
+        int stbGroupEntries;
         int stds;
         int stbGeos;
         int faceEdges;
     };
 
     const std::vector<ExpectedSheet> expectedSheets = {
-        {"Detail01.stl", 138, 1, 1, 1, 7, 1, 2, 8, 13, 19, 23, 7},
-        {"Detail02.stl", 67, 1, 1, 0, 0, 0, 0, 4, 7, 9, 9, 3},
-        {"Detail03.stl", 73, 1, 1, 0, 0, 0, 0, 10, 6, 10, 12, 0},
-        {"Detail04.stl", 81, 1, 1, 0, 0, 0, 0, 10, 8, 13, 15, 0},
+        {"Detail01.stl", 138, 1, 1, 1, 7, 1, 2, 8, 13, 1, 12, 19, 23, 7},
+        {"Detail02.stl", 67, 1, 1, 0, 0, 0, 0, 4, 7, 1, 6, 9, 9, 3},
+        {"Detail03.stl", 73, 1, 1, 0, 0, 0, 0, 10, 6, 1, 5, 10, 12, 0},
+        {"Detail04.stl", 81, 1, 1, 0, 0, 0, 0, 10, 8, 1, 7, 13, 15, 0},
     };
 
     const std::optional<tsrs::detail::DetailFileSnapshot> style =
@@ -270,6 +360,8 @@ int expectTodo66ManifestFixture()
             || summary.matRowCount != expected.matRows
             || summary.sectionLineCount != expected.sectionLines
             || summary.stbGroupElementCount != expected.stbGroups
+            || summary.stbGroupsContainerCount != expected.stbGroupsContainers
+            || summary.stbGroupEntryCount != expected.stbGroupEntries
             || summary.stdElementCount != expected.stds
             || summary.stbGeoElementCount != expected.stbGeos
             || summary.faceEdgeCount != expected.faceEdges) {
@@ -286,16 +378,22 @@ int expectTodo66ManifestFixture()
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
     try {
+        if (argc > 1 && std::string{argv[1]} == "--todo66-fixture") {
+            return expectTodo66ManifestFixture();
+        }
         if (const int code = expectSyntheticPackageRead()) {
             return code;
         }
         if (const int code = expectMissingPackageDiagnostic()) {
             return code;
         }
-        if (const int code = expectTodo66ManifestFixture()) {
+        if (const int code = expectMalformedXmlDiagnosticHasLineColumn()) {
+            return code;
+        }
+        if (const int code = expectSheetNameParsingAndGapDiagnostics()) {
             return code;
         }
     } catch (const std::exception& exception) {

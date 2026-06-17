@@ -87,9 +87,23 @@ DetailKnownSummary
   matRowCount
   sectionLineCount
   stbGroupElementCount
+  stbGroupsContainerCount
+  stbGroupEntryCount
   stdElementCount
   stbGeoElementCount
   faceEdgeCount
+
+DetailRawAttribute
+  nodePath
+  name
+  value
+  namespaceUri
+  qualifiedName
+
+DetailUnknownChild
+  nodePath
+  name
+  namespaceUri
 ```
 
 诊断：
@@ -150,23 +164,42 @@ tsrs_detail_package_reader_tests
 1. synthetic Detail package 可读取。
 2. rawXml 保留。
 3. rawAttributes 和 unknownChildren 保留。
-4. missing package 返回 DETAIL_PACKAGE_MISSING。
-5. 真实 todo66 fixture hash 与 manifest 一致。
-6. 真实 Detail.xml root = StyleRoot。
-7. 真实 Detail01..04.stl root = DrawingRoot。
-8. 真实 Detail01..04.stl knownSummary 与观察值一致。
+4. rawAttributes 保留属性名和值。
+5. unknownChildren 保留未知节点名和路径。
+6. malformed XML diagnostic 包含 line / column。
+7. Detail1 / Detail03 / Detail100 sheetIndex 按完整数字解析。
+8. missing package 返回 DETAIL_PACKAGE_MISSING。
+9. 真实 todo66 fixture hash 与 manifest 一致。
+10. 真实 Detail.xml root = StyleRoot。
+11. 真实 Detail01..04.stl root = DrawingRoot。
+12. 真实 Detail01..04.stl knownSummary 与观察值一致。
 ```
+
+TODO-022 外部评审后，真实 todo66 fixture probe 已拆成独立 CTest：
+
+```text
+tsrs_detail_package_reader_todo66_fixture_probe
+```
+
+如果本机找不到真实样本，该测试返回 77 并由 CTest 标记为 skipped，
+不再把“缺真实样本”伪装成普通通过。
 
 专项验证：
 
 ```powershell
-cmd.exe /c "call ""D:\Visual Studio 2026\Community\Common7\Tools\VsDevCmd.bat"" -arch=x64 -host_arch=x64 >nul && cmake --build build/default --config Debug --target tsrs_detail_package_reader_tests && ctest --test-dir build/default --output-on-failure -C Debug -R tsrs_detail_package_reader_tests"
+cmd.exe /c "call ""D:\Visual Studio 2026\Community\Common7\Tools\VsDevCmd.bat"" -arch=x64 -host_arch=x64 >nul && cmake --build build/default --config Debug --target tsrs_detail_package_reader_tests && ctest --test-dir build/default --output-on-failure -C Debug -R tsrs_detail_package_reader"
 ```
 
-结果：
+初次 TODO-022 结果：
 
 ```text
 1/1 passed。
+```
+
+外部评审补强后结果：
+
+```text
+2/2 passed。
 ```
 
 默认 CTest：
@@ -175,10 +208,16 @@ cmd.exe /c "call ""D:\Visual Studio 2026\Community\Common7\Tools\VsDevCmd.bat"" 
 ctest --test-dir build/default --output-on-failure -C Debug
 ```
 
-结果：
+初次 TODO-022 结果：
 
 ```text
 19/19 passed。
+```
+
+外部评审补强后结果：
+
+```text
+20/20 passed。
 ```
 
 构建环境说明：
@@ -248,10 +287,11 @@ app/src/application
 | ID | 缺口 | 处理 |
 | --- | --- | --- |
 | TODO022-GAP-001 | rawXml 已保留，但 Writer round-trip 尚未实现。 | TODO-023。 |
-| TODO022-GAP-002 | unknownChildren 目前只记录未知 element 路径，不做完整未知子树模型。 | TODO-023 preserve-mode 优先 rawXml 原文回写。 |
-| TODO022-GAP-003 | rawAttributes 记录路径，不解析字段语义。 | 后续 schema / DrawingModel 映射阶段再做。 |
+| TODO022-GAP-002 | unknownChildren 已记录未知 element 路径 / 名称 / namespace，但不做完整未知子树模型。 | TODO-023 preserve-mode 优先 rawXml 原文回写。 |
+| TODO022-GAP-003 | rawAttributes 已记录属性名和值，但不保留原始属性顺序 / quote 风格。 | TODO-023 只做 rawXml passthrough；后续结构化 XML mutation 前再扩展。 |
 | TODO022-GAP-004 | CAD 插件 autoin 尚未验证。 | TODO-024。 |
 | TODO022-GAP-005 | DetailNN.stl 编号缺口目前只 warning。 | Writer / package validation 阶段继续收紧。 |
+| TODO022-GAP-006 | 非 UTF-8 / GBK 旧 Detail XML 尚未用真实样本验证。 | 后续收集更多旧包时补编码观测。 |
 
 ## 下一步
 
@@ -265,6 +305,7 @@ TODO-023 DetailPackageWriter round-trip
 
 ```text
 只做 Reader -> Writer preserve-mode round-trip。
+Writer P0 必须 rawXml passthrough。
 不做 minimal generate。
 不接 Viewer。
 不接钢筋生成器。

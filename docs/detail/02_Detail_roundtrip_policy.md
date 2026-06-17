@@ -58,6 +58,18 @@ DetailFileSnapshot
   rawAttributes
   unknownChildren
   diagnostics
+
+DetailRawAttribute
+  nodePath
+  name
+  value
+  namespaceUri
+  qualifiedName
+
+DetailUnknownChild
+  nodePath
+  name
+  namespaceUri
 ```
 
 TODO-022 P0 额外边界：
@@ -91,7 +103,9 @@ synthetic XML 只用于补边界测试，没有替代真实样本。
 
 ## Writer P0 策略
 
-Writer P0 支持两种模式：
+Writer P0 for TODO-023 only supports preserve mode.
+
+Minimal generate mode is deferred to TODO-024.
 
 ### Preserve mode
 
@@ -111,12 +125,15 @@ Reader 读到的 DetailPackageSnapshot
 
 ```text
 未修改文件优先原文回写。
+TODO-023 P0 必须使用 rawXml passthrough。
 不重排未知节点。
 不格式化导致字段顺序大幅变化。
 不主动删除空容器。
 ```
 
 ### Minimal generate mode
+
+This section is not part of TODO-023. It is the TODO-024 target.
 
 输入：
 
@@ -244,6 +261,8 @@ DETAIL_AUTOIN_NOT_VERIFIED
 ```text
 fileName
 sheetIndex
+line
+column
 nodePath
 severity
 message
@@ -287,6 +306,17 @@ StbGroup / StbRow / MaterialTable / section-line 统计不减少。
 ```text
 round-trip 后未知节点 / 属性仍存在。
 ```
+
+### Local todo66 fixture probe
+
+The local todo66 fixture probe is a separate CTest:
+
+```text
+tsrs_detail_package_reader_todo66_fixture_probe
+```
+
+If the local fixture is missing, this test must be reported as skipped,
+not as a normal passed test.
 
 ### Minimal fixture
 
