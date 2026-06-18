@@ -169,6 +169,10 @@ target/
 target.tmp/
   Detail.xml
   Detail01.stl
+
+target.backup/
+  Detail.xml
+  Detail01.stl
 ```
 
 流程：
@@ -183,7 +187,16 @@ target.tmp/
 7. 失败则保留旧 target。
 ```
 
-P0 可以先在测试目录内实现，不碰用户真实目录。
+P0 Writer 已实现：
+
+```text
+target.tmp 写出和校验。
+target.backup 备份旧输出。
+提交失败时尝试恢复旧 target。
+提交成功后清理 target.backup。
+```
+
+这仍不是跨文件系统强原子替换保证，但已满足 P0 的“坏包不提交、失败不主动删除旧 target”事务口径。
 
 ## Unknown preservation
 
@@ -202,13 +215,13 @@ sheetIndex。
 P0 不承诺：
 
 ```text
-保留字节级完全一致。
+结构化 mutation 时保留字节级完全一致。
 保留属性原始顺序。
 保留 XML declaration。
 保留原始缩进。
 ```
 
-但是如果没有修改某个文件，优先 rawXml 原文回写。
+但是如果没有修改某个文件，必须 rawXml 原文回写；TODO-023 preserve-mode 的保守保证只来自 rawXml passthrough，不来自 rawAttributes / unknownChildren。
 
 ## Validation
 

@@ -180,7 +180,7 @@ int expectSyntheticRawPassthroughRoundTrip()
     return 0;
 }
 
-int expectWriterValidatesOutput()
+int expectWriterRejectsInvalidSourceBeforeWriting()
 {
     const std::filesystem::path sourceDir =
         makeTempDirectory("tsrs_detail_package_writer_validate_source");
@@ -198,16 +198,14 @@ int expectWriterValidatesOutput()
         writer.writePreserveMode(sourcePackage, outputDir.string());
 
     if (writeResult.ok()) {
-        return fail("expected writer validation to reject malformed rawXml output");
+        return fail("expected writer to reject malformed source package");
     }
-    bool sawValidateFailed = false;
-    for (const tsrs::detail::DetailDiagnostic& diagnostic : writeResult.diagnostics) {
-        if (diagnostic.code == tsrs::detail::kDetailDiagnosticWriteValidateFailed) {
-            sawValidateFailed = true;
-        }
+    if (writeResult.filesWritten != 0) {
+        return fail("expected writer to reject malformed source before writing files");
     }
-    if (!sawValidateFailed) {
-        return fail("expected DETAIL_WRITE_VALIDATE_FAILED diagnostic");
+    if (std::filesystem::exists(outputDir / "Detail.xml")
+        || std::filesystem::exists(outputDir / "Detail01.stl")) {
+        return fail("expected malformed source rejection not to leave output files");
     }
     return 0;
 }
@@ -236,6 +234,138 @@ int expectWriterRejectsUnsafeFileName()
     if (std::filesystem::exists(escapedPath)) {
         return fail("expected unsafe fileName not to escape target directory");
     }
+    return 0;
+}
+
+int expectPreserveModeReplacesStaleTargetContents()
+{
+    const std::filesystem::path sourceDir =
+        makeTempDirectory("tsrs_detail_package_writer_stale_source");
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_stale_output");
+
+    const std::string styleXml = "<StyleRoot/>\n";
+    const std::string sheetXml =
+        "<DrawingRoot><HViewPorts><ViewPort><PartDetailDrawing num=\"1\">"
+        "<section-line><lines><Line1 start_x=\"0\" start_y=\"0\" end_x=\"1\" end_y=\"1\"/></lines></section-line>"
+        "</PartDetailDrawing></ViewPort></HViewPorts></DrawingRoot>\n";
+
+    writeTextFile(sourceDir / "Detail.xml", styleXml);
+    writeTextFile(sourceDir / "Detail01.stl", sheetXml);
+    writeTextFile(outputDir / "Detail99.stl", "<DrawingRoot/>");
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot sourcePackage =
+        reader.readDirectory(sourceDir.string());
+    if (!sourcePackage.ok()) {
+        return fail("expected stale target source package to read before write");
+    }
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writePreserveMode(sourcePackage, outputDir.string());
+    if (!writeResult.ok()) {
+        return fail("expected preserve-mode writer to replace stale target contents");
+    }
+    if (std::filesystem::exists(outputDir / "Detail99.stl")) {
+        return fail("expected preserve-mode transaction to remove stale Detail99.stl");
+    }
+    if (readTextFile(outputDir / "Detail.xml") != styleXml
+        || readTextFile(outputDir / "Detail01.stl") != sheetXml) {
+        return fail("expected preserve-mode transaction to commit source rawXml bytes");
+    }
+    return 0;
+}
+
+int expectPreserveModeHandlesTrailingSeparatorTarget()
+{
+    const std::filesystem::path sourceDir =
+        makeTempDirectory("tsrs_detail_package_writer_trailing_separator_source");
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_trailing_separator_output");
+
+    const std::string styleXml = "<StyleRoot/>\n";
+    const std::string sheetXml =
+        "<DrawingRoot><HViewPorts><ViewPort><PartDetailDrawing num=\"1\">"
+        "<section-line><lines><Line1 start_x=\"0\" start_y=\"0\" end_x=\"1\" end_y=\"1\"/></lines></section-line>"
+        "</PartDetailDrawing></ViewPort></HViewPorts></DrawingRoot>\n";
+
+    writeTextFile(sourceDir / "Detail.xml", styleXml);
+    writeTextFile(sourceDir / "Detail01.stl", sheetXml);
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot sourcePackage =
+        reader.readDirectory(sourceDir.string());
+    if (!sourcePackage.ok()) {
+        return fail("expected trailing separator source package to read before write");
+    }
+
+    const std::string targetWithTrailingSeparator =
+        (outputDir.string() + std::string{std::filesystem::path::preferred_separator});
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writePreserveMode(sourcePackage, targetWithTrailingSeparator);
+    if (!writeResult.ok()) {
+        return fail("expected preserve-mode writer to handle trailing target separator");
+    }
+    if (readTextFile(outputDir / "Detail.xml") != styleXml
+        || readTextFile(outputDir / "Detail01.stl") != sheetXml) {
+        return fail("expected trailing separator target to receive committed rawXml bytes");
+    }
+    if (std::filesystem::exists(outputDir / ".tmp")) {
+        return fail("expected temporary directory not to be nested inside target directory");
+    }
+    return 0;
+}
+
+int expectPreserveModeKeepsTargetWhenBackupPathBlocked()
+{
+    const std::filesystem::path sourceDir =
+        makeTempDirectory("tsrs_detail_package_writer_backup_blocked_source");
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_backup_blocked_output");
+    const std::filesystem::path blockedBackupDir = outputDir.parent_path()
+        / (outputDir.filename().string() + ".backup");
+
+    const std::string oldStyleXml = "<StyleRoot old=\"yes\"/>\n";
+    const std::string oldSheetXml =
+        "<DrawingRoot><HViewPorts><ViewPort><PartDetailDrawing num=\"1\">"
+        "<section-line><lines><Line1 start_x=\"0\" start_y=\"0\" end_x=\"1\" end_y=\"1\"/></lines></section-line>"
+        "</PartDetailDrawing></ViewPort></HViewPorts></DrawingRoot>\n";
+    const std::string newStyleXml = "<StyleRoot new=\"yes\"/>\n";
+    const std::string newSheetXml =
+        "<DrawingRoot><HViewPorts><ViewPort><PartDetailDrawing num=\"1\">"
+        "<section-line><lines><Line1 start_x=\"10\" start_y=\"20\" end_x=\"30\" end_y=\"40\"/></lines></section-line>"
+        "</PartDetailDrawing></ViewPort></HViewPorts></DrawingRoot>\n";
+
+    writeTextFile(outputDir / "Detail.xml", oldStyleXml);
+    writeTextFile(outputDir / "Detail01.stl", oldSheetXml);
+    writeTextFile(sourceDir / "Detail.xml", newStyleXml);
+    writeTextFile(sourceDir / "Detail01.stl", newSheetXml);
+    std::filesystem::remove_all(blockedBackupDir);
+    std::filesystem::create_directories(blockedBackupDir);
+    writeTextFile(blockedBackupDir / "block.txt", "backup path is intentionally blocked");
+
+    const tsrs::detail::DetailPackageReader reader;
+    const tsrs::detail::DetailPackageSnapshot sourcePackage =
+        reader.readDirectory(sourceDir.string());
+    if (!sourcePackage.ok()) {
+        return fail("expected backup blocked source package to read before write");
+    }
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writePreserveMode(sourcePackage, outputDir.string());
+    if (writeResult.ok()) {
+        return fail("expected preserve-mode writer to fail when backup path is blocked");
+    }
+    if (readTextFile(outputDir / "Detail.xml") != oldStyleXml
+        || readTextFile(outputDir / "Detail01.stl") != oldSheetXml) {
+        return fail("expected failed commit to keep existing target package bytes");
+    }
+
+    std::filesystem::remove_all(blockedBackupDir);
     return 0;
 }
 
@@ -333,6 +463,62 @@ int expectMinimalSectionLinePackageGeneration()
         || sheet->knownSummary.partDetailDrawingCount != 1
         || sheet->knownSummary.sectionLineCount != 1) {
         return fail("expected generated package to contain one viewport, one part drawing, one section line");
+    }
+    return 0;
+}
+
+int expectMinimalSectionLineReplacesStaleTargetContents()
+{
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_minimal_stale_output");
+    writeTextFile(outputDir / "Detail99.stl", "<DrawingRoot/>");
+
+    tsrs::detail::DetailMinimalSectionLinePackage request;
+    request.drawingName = "TS_RS minimal stale replacement";
+    request.sectionLine.startX = 10.0;
+    request.sectionLine.startY = 20.0;
+    request.sectionLine.endX = 110.5;
+    request.sectionLine.endY = 220.25;
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writeMinimalSectionLinePackage(request, outputDir.string());
+    if (!writeResult.ok()) {
+        return fail("expected minimal writer to replace stale target contents");
+    }
+    if (std::filesystem::exists(outputDir / "Detail99.stl")) {
+        return fail("expected minimal writer transaction to remove stale Detail99.stl");
+    }
+    return 0;
+}
+
+int expectMinimalSectionLineHandlesTrailingSeparatorTarget()
+{
+    const std::filesystem::path outputDir =
+        makeTempDirectory("tsrs_detail_package_writer_minimal_trailing_output");
+
+    tsrs::detail::DetailMinimalSectionLinePackage request;
+    request.drawingName = "TS_RS minimal trailing separator";
+    request.sectionLine.startX = 10.0;
+    request.sectionLine.startY = 20.0;
+    request.sectionLine.endX = 110.5;
+    request.sectionLine.endY = 220.25;
+
+    const std::string targetWithTrailingSeparator =
+        (outputDir.string() + std::string{std::filesystem::path::preferred_separator});
+
+    const tsrs::detail::DetailPackageWriter writer;
+    const tsrs::detail::DetailPackageWriteResult writeResult =
+        writer.writeMinimalSectionLinePackage(request, targetWithTrailingSeparator);
+    if (!writeResult.ok()) {
+        return fail("expected minimal writer to handle trailing target separator");
+    }
+    if (!std::filesystem::exists(outputDir / "Detail.xml")
+        || !std::filesystem::exists(outputDir / "Detail01.stl")) {
+        return fail("expected trailing separator minimal target to receive committed package");
+    }
+    if (std::filesystem::exists(outputDir / ".tmp")) {
+        return fail("expected minimal temporary directory not to be nested inside target directory");
     }
     return 0;
 }
@@ -466,13 +652,28 @@ int main(int argc, char** argv)
         if (const int code = expectSyntheticRawPassthroughRoundTrip()) {
             return code;
         }
-        if (const int code = expectWriterValidatesOutput()) {
+        if (const int code = expectWriterRejectsInvalidSourceBeforeWriting()) {
             return code;
         }
         if (const int code = expectWriterRejectsUnsafeFileName()) {
             return code;
         }
+        if (const int code = expectPreserveModeReplacesStaleTargetContents()) {
+            return code;
+        }
+        if (const int code = expectPreserveModeHandlesTrailingSeparatorTarget()) {
+            return code;
+        }
+        if (const int code = expectPreserveModeKeepsTargetWhenBackupPathBlocked()) {
+            return code;
+        }
         if (const int code = expectMinimalSectionLinePackageGeneration()) {
+            return code;
+        }
+        if (const int code = expectMinimalSectionLineReplacesStaleTargetContents()) {
+            return code;
+        }
+        if (const int code = expectMinimalSectionLineHandlesTrailingSeparatorTarget()) {
             return code;
         }
         if (const int code = expectMinimalSectionLineRejectsNonFiniteCoordinates()) {

@@ -142,17 +142,20 @@ TS_RS 的 P0 / 架构 / 协议 / 真实环境门禁节点，除本地测试和 x
    - todo.csv 当前状态
 10. 使用 web-gpt-pro-review skill 发送到用户指定的 ChatGPT 对话。
 11. 等待外部审查完成，不重复刷新，不重复发送。
-12. 将外部审查结果落到 docs/external_reviews/。
-13. 审查记录 md 必须包含：
+12. 如果外部审查对话掉线、页面丢失、没有返回完整评审或无法确认最新回复，
+    必须记录为 dropped / no-result，不能当作通过，也不能用来关闭 Critical / Important。
+13. 将外部审查结果或掉线记录落到 docs/external_reviews/。
+14. 审查记录 md 必须包含：
    - 审查时间
    - 审查 todo / commit / tag
    - ChatGPT 对话 URL
    - 上传审查包路径
-   - 外部审查原文或关键摘录
+   - 外部审查状态：completed / dropped / blocked
+   - 外部审查原文或关键摘录；若 dropped，则写明掉线原因和未取得结论
    - Critical / Important / Minor 清单
    - 每条审查 TODO 的处理状态：fixed / rebutted / deferred / blocked
    - 修复 commit / tag（如有）
-14. Critical / Important 必须修复或写明技术反驳理由。
+15. Critical / Important 必须修复或写明技术反驳理由。
 ```
 
 web-gpt-pro-review 固定要求：
@@ -186,7 +189,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前没有 next。
+当前 next：TODO-020D TopologyBindingRegistry P1 hardening。
 TODO-024 处于 blocked：
 代码侧极简 Detail 包生成已完成，
 但还需要旧 AutoCAD 插件 autoin 人工验证。
@@ -195,9 +198,12 @@ TODO-024 处于 blocked：
 目标：
 
 ```text
-先闭合 Detail 兼容出口的真实环境证据。
+按外部审查建议拆开阻塞边界：
+TODO-020D / TODO-020E / TODO-020G 可继续推进，
+不必等待 TODO-024 autoin。
+
 GC-004 autoin 人工验证通过前，
-不推进依赖 TODO-024 的后续节点。
+TODO-021 Viewer 选择系统和 generator->Detail 闭环仍不得放行。
 ```
 
 已完成：
@@ -366,7 +372,8 @@ TODO-024：
 
 当前阻塞：
   GC-004 minimal_detail_package 尚未由旧 AutoCAD 插件 autoin 人工验证。
-  验证通过前 todo.csv 不设置下一个 next。
+  验证通过前 TODO-024 不改 done。
+  但 TODO-024 不再阻塞 TODO-020D / TODO-020E / TODO-020G。
 ```
 
 中期顺序：
@@ -410,6 +417,11 @@ TODO-022 / TODO-023 / TODO-024 前置 Detail 读写和极简 autoin 验证，
 是为了先验证老图石 CAD 插件兼容出口，
 不要直接跳到 Viewer 选择系统。
 
+TODO-024 autoin 尚未闭合时：
+  - 可以继续 TODO-020D / TODO-020E / TODO-020G。
+  - 不能进入 TODO-021。
+  - 不能进入 generator->Detail 真实闭环。
+
 TODO-020D / TODO-020E / TODO-020G 必须在 TODO-021 前完成，
 避免 Viewer 选择绕过 stable binding 或 CommandService。
 
@@ -444,14 +456,14 @@ P0 / 架构 / 协议 / 真实环境门禁节点推送后，必须打审查包并
 外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-如果 todo.csv 没有 next 且 TODO-024 为 blocked，
-说明必须先完成旧 AutoCAD 插件 autoin 人工验证。
+当前 next 为 TODO-020D。
+TODO-024 仍为 blocked，但只阻塞 TODO-021 和 generator->Detail 闭环。
 
 TODO-024 blocked 处理：
 使用 docs/validation/golden_cases/GC-004/minimal_detail_package/
 在旧 AutoCAD 插件中执行 autoin。
 验证通过后回填 GC-004 README，
-再将 TODO-024 改为 done，并设置 TODO-020D 为 next。
+再将 TODO-024 改为 done。
 验证失败则记录错误提示和截图，
 下一轮只补最小缺失 Detail 字段。
 ```

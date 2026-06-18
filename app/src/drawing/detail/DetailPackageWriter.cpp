@@ -12,6 +12,13 @@
 
 namespace {
 
+using tsrs::detail::DetailDiagnostic;
+using tsrs::detail::DetailFileSnapshot;
+using tsrs::detail::DetailPackageSnapshot;
+using tsrs::detail::DetailPackageWriteResult;
+using tsrs::detail::kDetailDiagnosticWriteFailed;
+using tsrs::detail::kDetailDiagnosticWriteValidateFailed;
+
 QString toQString(const std::filesystem::path& path)
 {
 #ifdef _WIN32
@@ -52,6 +59,180 @@ bool writeRawXmlFile(const std::filesystem::path& path, const std::string& rawXm
     }
     return file.write(rawXml.data(), static_cast<qint64>(rawXml.size()))
         == static_cast<qint64>(rawXml.size());
+}
+
+std::string readRawFile(const std::filesystem::path& path)
+{
+    QFile file(toQString(path));
+    if (!file.open(QIODevice::ReadOnly)) {
+        return {};
+    }
+    return file.readAll().toStdString();
+}
+
+void appendDiagnostics(
+    tsrs::detail::DetailPackageWriteResult& result,
+    const tsrs::detail::DetailPackageSnapshot& package)
+{
+    for (const tsrs::detail::DetailDiagnostic& diagnostic : package.diagnostics) {
+        result.diagnostics.push_back(diagnostic);
+    }
+    for (const tsrs::detail::DetailFileSnapshot& file : package.files) {
+        result.diagnostics.insert(
+            result.diagnostics.end(),
+            file.diagnostics.begin(),
+            file.diagnostics.end());
+    }
+}
+
+bool recreateDirectory(
+    const std::filesystem::path& directory,
+    tsrs::detail::DetailPackageWriteResult& result,
+    const std::string& label)
+{
+    std::error_code error;
+    std::filesystem::remove_all(directory, error);
+    if (error) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            {},
+            -1,
+            "Failed to remove " + label + " Detail directory: " + error.message()));
+        return false;
+    }
+
+    std::filesystem::create_directories(directory, error);
+    if (error) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            {},
+            -1,
+            "Failed to create " + label + " Detail directory: " + error.message()));
+        return false;
+    }
+    return true;
+}
+
+std::filesystem::path normalizeTargetDirectoryPath(const std::filesystem::path& target)
+{
+    std::filesystem::path normalized = target.lexically_normal();
+    while (!normalized.empty()
+        && normalized.filename().empty()
+        && normalized.has_parent_path()) {
+        const std::filesystem::path parent = normalized.parent_path();
+        if (parent == normalized) {
+            break;
+        }
+        normalized = parent;
+    }
+    return normalized;
+}
+
+std::filesystem::path makeSiblingTempDirectoryPath(const std::filesystem::path& target)
+{
+    const std::filesystem::path normalized = normalizeTargetDirectoryPath(target);
+    std::filesystem::path tempName = normalized.filename();
+    tempName += ".tmp";
+    return normalized.parent_path() / tempName;
+}
+
+std::filesystem::path makeSiblingBackupDirectoryPath(const std::filesystem::path& target)
+{
+    const std::filesystem::path normalized = normalizeTargetDirectoryPath(target);
+    std::filesystem::path backupName = normalized.filename();
+    backupName += ".backup";
+    return normalized.parent_path() / backupName;
+}
+
+bool commitTempDirectory(
+    const std::filesystem::path& temp,
+    const std::filesystem::path& target,
+    tsrs::detail::DetailPackageWriteResult& result)
+{
+    std::error_code error;
+    const std::filesystem::path backup = makeSiblingBackupDirectoryPath(target);
+    const bool hadTarget = std::filesystem::exists(target, error);
+    if (error) {
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            {},
+            -1,
+            "Failed to inspect previous Detail output directory: " + error.message()));
+        return false;
+    }
+
+    if (hadTarget) {
+        if (std::filesystem::exists(backup, error)) {
+            result.diagnostics.push_back(makeDiagnostic(
+                kDetailDiagnosticWriteFailed,
+                "error",
+                {},
+                -1,
+                "Refusing to commit Detail output because backup directory already exists."));
+            return false;
+        }
+        if (error) {
+            result.diagnostics.push_back(makeDiagnostic(
+                kDetailDiagnosticWriteFailed,
+                "error",
+                {},
+                -1,
+                "Failed to inspect Detail backup directory: " + error.message()));
+            return false;
+        }
+
+        std::filesystem::rename(target, backup, error);
+        if (error) {
+            result.diagnostics.push_back(makeDiagnostic(
+                kDetailDiagnosticWriteFailed,
+                "error",
+                {},
+                -1,
+                "Failed to backup previous Detail output directory: " + error.message()));
+            return false;
+        }
+    }
+
+    std::filesystem::rename(temp, target, error);
+    if (error) {
+        if (hadTarget) {
+            std::error_code restoreError;
+            std::filesystem::rename(backup, target, restoreError);
+            if (restoreError) {
+                result.diagnostics.push_back(makeDiagnostic(
+                    kDetailDiagnosticWriteFailed,
+                    "error",
+                    {},
+                    -1,
+                    "Failed to restore previous Detail output directory after commit failure: "
+                        + restoreError.message()));
+            }
+        }
+        result.diagnostics.push_back(makeDiagnostic(
+            kDetailDiagnosticWriteFailed,
+            "error",
+            {},
+            -1,
+            "Failed to commit Detail output directory: " + error.message()));
+        return false;
+    }
+
+    if (hadTarget) {
+        std::filesystem::remove_all(backup, error);
+        if (error) {
+            result.diagnostics.push_back(makeDiagnostic(
+                kDetailDiagnosticWriteFailed,
+                "error",
+                {},
+                -1,
+                "Failed to remove Detail backup directory after commit: " + error.message()));
+            return false;
+        }
+    }
+    return true;
 }
 
 std::string xmlEscaped(const std::string& value)
@@ -219,19 +400,24 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
     DetailPackageWriteResult result;
     result.targetDirectory = targetDirectory;
 
-    const std::filesystem::path target(targetDirectory);
-    std::error_code error;
-    std::filesystem::create_directories(target, error);
-    if (error) {
+    if (!package.ok()) {
         result.diagnostics.push_back(makeDiagnostic(
             kDetailDiagnosticWriteFailed,
             "error",
             {},
             -1,
-            "Failed to create Detail output directory: " + error.message()));
+            "Refusing to write a Detail package snapshot with error diagnostics."));
+        appendDiagnostics(result, package);
         return result;
     }
 
+    const std::filesystem::path target = normalizeTargetDirectoryPath(targetDirectory);
+    const std::filesystem::path temp = makeSiblingTempDirectoryPath(target);
+    if (!recreateDirectory(temp, result, "temporary")) {
+        return result;
+    }
+
+    int filesWritten = 0;
     for (const DetailFileSnapshot& file : package.files) {
         if (!isSafePackageFileName(file.fileName)) {
             result.diagnostics.push_back(makeDiagnostic(
@@ -252,7 +438,7 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
             continue;
         }
 
-        if (!writeRawXmlFile(target / file.fileName, file.rawXml)) {
+        if (!writeRawXmlFile(temp / file.fileName, file.rawXml)) {
             result.diagnostics.push_back(makeDiagnostic(
                 kDetailDiagnosticWriteFailed,
                 "error",
@@ -261,31 +447,27 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
                 "Failed to write Detail file: " + file.fileName));
             continue;
         }
-        ++result.filesWritten;
+        ++filesWritten;
     }
 
     if (!result.ok()) {
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
         return result;
     }
 
     const DetailPackageReader reader;
-    const DetailPackageSnapshot writtenPackage = reader.readDirectory(targetDirectory);
+    const DetailPackageSnapshot writtenPackage = reader.readDirectory(temp.string());
     if (!writtenPackage.ok() || writtenPackage.files.size() != package.files.size()) {
         result.diagnostics.push_back(makeDiagnostic(
             kDetailDiagnosticWriteValidateFailed,
             "error",
             {},
             -1,
-            "Written Detail package failed reader validation or file count changed."));
-        for (const DetailDiagnostic& diagnostic : writtenPackage.diagnostics) {
-            result.diagnostics.push_back(diagnostic);
-        }
-        for (const DetailFileSnapshot& file : writtenPackage.files) {
-            result.diagnostics.insert(
-                result.diagnostics.end(),
-                file.diagnostics.begin(),
-                file.diagnostics.end());
-        }
+                "Written Detail package failed reader validation or file count changed."));
+        appendDiagnostics(result, writtenPackage);
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
         return result;
     }
 
@@ -293,6 +475,7 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
         const DetailFileSnapshot* after = findFile(writtenPackage, before.fileName);
         if (!after
             || !sameKnownSummary(before.knownSummary, after->knownSummary)
+            || readRawFile(temp / before.fileName) != before.rawXml
             || after->rawAttributes.size() < before.rawAttributes.size()
             || after->unknownChildren.size() < before.unknownChildren.size()) {
             result.diagnostics.push_back(makeDiagnostic(
@@ -300,7 +483,7 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
                 "error",
                 before.fileName,
                 before.sheetIndex,
-                "Written Detail file did not preserve P0 summary or unknown counters. "
+                "Written Detail file did not preserve rawXml bytes, P0 summary, or unknown counters. "
                     + std::string{"before{"}
                     + knownSummaryDigest(before.knownSummary)
                     + ",rawAttrs=" + std::to_string(before.rawAttributes.size())
@@ -313,6 +496,19 @@ DetailPackageWriteResult DetailPackageWriter::writePreserveMode(
         }
     }
 
+    if (!result.ok()) {
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
+        return result;
+    }
+
+    if (!commitTempDirectory(temp, target, result)) {
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
+        return result;
+    }
+
+    result.filesWritten = filesWritten;
     return result;
 }
 
@@ -333,45 +529,43 @@ DetailPackageWriteResult DetailPackageWriter::writeMinimalSectionLinePackage(
         return result;
     }
 
-    const std::filesystem::path target(targetDirectory);
-    std::error_code error;
-    std::filesystem::create_directories(target, error);
-    if (error) {
-        result.diagnostics.push_back(makeDiagnostic(
-            kDetailDiagnosticWriteFailed,
-            "error",
-            {},
-            -1,
-            "Failed to create Detail output directory: " + error.message()));
+    const std::filesystem::path target = normalizeTargetDirectoryPath(targetDirectory);
+    const std::filesystem::path temp = makeSiblingTempDirectoryPath(target);
+    if (!recreateDirectory(temp, result, "temporary")) {
         return result;
     }
 
     const std::string styleXml = minimalStyleXml();
     const std::string sheetXml = minimalSheetXml(package);
-    if (!writeRawXmlFile(target / "Detail.xml", styleXml)) {
+    int filesWritten = 0;
+    if (!writeRawXmlFile(temp / "Detail.xml", styleXml)) {
         result.diagnostics.push_back(makeDiagnostic(
             kDetailDiagnosticWriteFailed,
             "error",
             "Detail.xml",
             -1,
             "Failed to write minimal Detail.xml."));
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
         return result;
     }
-    ++result.filesWritten;
+    ++filesWritten;
 
-    if (!writeRawXmlFile(target / "Detail01.stl", sheetXml)) {
+    if (!writeRawXmlFile(temp / "Detail01.stl", sheetXml)) {
         result.diagnostics.push_back(makeDiagnostic(
             kDetailDiagnosticWriteFailed,
             "error",
             "Detail01.stl",
             1,
             "Failed to write minimal Detail01.stl."));
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
         return result;
     }
-    ++result.filesWritten;
+    ++filesWritten;
 
     const DetailPackageReader reader;
-    const DetailPackageSnapshot writtenPackage = reader.readDirectory(targetDirectory);
+    const DetailPackageSnapshot writtenPackage = reader.readDirectory(temp.string());
     const DetailFileSnapshot* sheet = findFile(writtenPackage, "Detail01.stl");
     if (!writtenPackage.ok()
         || writtenPackage.files.size() != 2
@@ -385,17 +579,22 @@ DetailPackageWriteResult DetailPackageWriter::writeMinimalSectionLinePackage(
             "Detail01.stl",
             1,
             "Generated minimal Detail package failed reader validation."));
-        for (const DetailDiagnostic& diagnostic : writtenPackage.diagnostics) {
-            result.diagnostics.push_back(diagnostic);
-        }
-        for (const DetailFileSnapshot& file : writtenPackage.files) {
-            result.diagnostics.insert(
-                result.diagnostics.end(),
-                file.diagnostics.begin(),
-                file.diagnostics.end());
-        }
+        appendDiagnostics(result, writtenPackage);
     }
 
+    if (!result.ok()) {
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
+        return result;
+    }
+
+    if (!commitTempDirectory(temp, target, result)) {
+        std::error_code ignored;
+        std::filesystem::remove_all(temp, ignored);
+        return result;
+    }
+
+    result.filesWritten = filesWritten;
     return result;
 }
 

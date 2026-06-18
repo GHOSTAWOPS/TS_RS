@@ -93,17 +93,22 @@ DETAIL_WRITE_VALIDATE_FAILED
 `writePreserveMode` 当前执行：
 
 ```text
-1. 创建输出目录。
-2. 遍历 DetailPackageSnapshot.files。
-3. 按原 fileName 写出 file.rawXml。
-4. 统计 filesWritten。
-5. 用 DetailPackageReader 重新读取输出目录。
+1. 拒绝 !package.ok() 的输入，避免坏包先写出再失败。
+2. 创建 target.tmp 临时输出目录。
+3. 遍历 DetailPackageSnapshot.files。
+4. 按原 fileName 写出 file.rawXml。
+5. 用 DetailPackageReader 重新读取 target.tmp。
 6. 比较：
    - 文件数量
+   - rawXml 字节完全一致
    - knownSummary
    - rawAttributes 数量不减少
    - unknownChildren 数量不减少
-7. 失败时返回 DETAIL_WRITE_FAILED 或 DETAIL_WRITE_VALIDATE_FAILED。
+7. 验证通过后把旧 target 移到 target.backup。
+8. 将 target.tmp 提交为 target。
+9. 提交失败时尝试恢复旧 target。
+10. 提交成功后清理 target.backup，避免 stale file / partial package。
+11. 失败时返回 DETAIL_WRITE_FAILED 或 DETAIL_WRITE_VALIDATE_FAILED。
 ```
 
 P0 强约束：
@@ -129,8 +134,12 @@ tsrs_detail_package_writer_tests
 4. 文件数量一致。
 5. knownSummary 一致。
 6. unknownChildren / rawAttributes 数量不减少。
-7. malformed rawXml 写出后会触发 DETAIL_WRITE_VALIDATE_FAILED。
+7. malformed source package 写出前会被拒绝，不会留下 Detail.xml / Detail01.stl。
 8. unsafe fileName（绝对路径 / `..` / 非 basename）会被拒绝，不能逃逸 targetDirectory。
+9. preserve-mode 使用临时目录事务写出，提交后不会保留旧目标目录中的 stale DetailNN.stl。
+10. targetDirectory 带尾部分隔符时，临时目录仍创建为 target 的兄弟目录，不嵌套进 target 内部。
+11. backup 目录被占用时写入失败，且旧 target 字节保持不变。
+12. minimal writer 同样覆盖 stale target replacement 和 trailing separator target。
 ```
 
 真实样本 probe：
@@ -257,9 +266,9 @@ domain/rebar not present
 | ID | 缺口 | 处理 |
 | --- | --- | --- |
 | TODO023-GAP-001 | Writer P0 只做 rawXml passthrough，不做结构化 XML mutation。 | 后续如需 mutation，先建立强 XML model。 |
-| TODO023-GAP-002 | 输出目录当前由调用者提供，P0 未实现正式事务性 target.tmp 替换。 | 后续正式导出节点补事务写入。 |
+| TODO023-GAP-002 | preserve-mode / minimal writer 已实现 target.tmp + target.backup 事务写出；不是跨文件系统强原子替换。 | 如后续需要更强保证，再设计平台相关 atomic replace 策略。 |
 | TODO023-GAP-003 | CAD 插件 autoin 尚未验证。 | TODO-024。 |
-| TODO023-GAP-004 | malformed source 目前可写出但 validation 会失败返回 diagnostic。 | 外部审查重点确认是否需改成写前拒绝。 |
+| TODO023-GAP-004 | malformed source 写出前拒绝已完成。 | 已按 TODO-023/024 外审整改。 |
 | TODO023-GAP-005 | 非 UTF-8 / GBK 旧 Detail XML 尚未用更多真实样本验证。 | 后续收集更多旧包时补编码观测。 |
 
 ## 下一步

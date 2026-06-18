@@ -52,6 +52,14 @@ unchanged input file -> exact rawXml bytes written as output file contents
 `rawAttributes` and `unknownChildren` in TODO-023 are diagnostics and guardrail signals.
 They are not yet a complete structural preservation model.
 
+Hard rule after the TODO-023 / TODO-024 external review:
+
+```text
+preserve-mode guarantee currently comes from rawXml passthrough only.
+rawAttributes/unknownChildren are diagnostics, not structural preservation.
+rawAttributes/unknownChildren are not mutation-ready preservation data.
+```
+
 If a future node needs structured XML mutation, it must first add a stronger XML model:
 
 ```text
@@ -87,4 +95,3 @@ TODO-024 creates an extreme minimal Detail package.
 The user runs old AutoCAD plugin autoin.
 The import result is recorded with files / screenshots / logs.
 ```
-

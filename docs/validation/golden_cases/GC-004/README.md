@@ -45,6 +45,14 @@ Detail01.stl
   6A1FB5CBC165F1F26D3D8BE5D91E3F937CCF446109EDB84953F724B69744932D
 ```
 
+注意：
+
+```text
+GC-004 当前是 writer regression fixture, not compatibility proof。
+它只能锁定 TS_RS 当前 Writer 输出形状。
+旧 CAD 插件兼容性只能由 autoin 人工验证记录证明。
+```
+
 ## 代码生成入口
 
 对应实现：

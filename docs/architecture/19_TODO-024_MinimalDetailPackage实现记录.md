@@ -218,7 +218,7 @@ autoin 尚未人工执行。
 ```text
 1. 回填 GC-004 README。
 2. 将 TODO-024 从 blocked 改为 done。
-3. 推进 TODO-020D。
+3. 解除 TODO-021 和 generator->Detail 闭环对 TODO-024 的阻塞。
 ```
 
 如果 autoin 失败：
