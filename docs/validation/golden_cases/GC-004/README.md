@@ -32,7 +32,7 @@ docs/validation/golden_cases/GC-004/minimal_detail_package/Detail01.stl
 
 ```text
 Detail.xml = <StyleRoot/>
-Detail01.stl = DrawingRoot + HViewPorts + PartDetailDrawing + section-line/Line1
+Detail01.stl = DrawingRoot + HViewPorts + PartDetailDrawing + General-Info ExportYesNo="T" + section-line/Line1
 ```
 
 当前 SHA256：
@@ -42,7 +42,7 @@ Detail.xml
   EA2FB44459C41800DF2251676DF6A72FB7B205FE7EB859925BA1AA2AFECEFFC0
 
 Detail01.stl
-  6A1FB5CBC165F1F26D3D8BE5D91E3F937CCF446109EDB84953F724B69744932D
+  410F70E1EB77C0669933309DC13A4840649A98CB95CFD6F32BA03447725467DC
 ```
 
 注意：
@@ -51,6 +51,35 @@ Detail01.stl
 GC-004 当前是 writer regression fixture, not compatibility proof。
 它只能锁定 TS_RS 当前 Writer 输出形状。
 旧 CAD 插件兼容性只能由 autoin 人工验证记录证明。
+```
+
+## autoin 逆向证据摘要
+
+2026-06-18 已用 IDA MCP 复核旧 AutoCAD 图石插件：
+
+```text
+FDrawing.arx / FDrawing.arx.i64
+IDA MCP session = fdrawing_arx
+```
+
+已确认：
+
+```text
+1. autoin 主逻辑在 sub_180556580。
+2. 普通 autoin 默认读取 %TEMP%\msohtmplcllip。
+3. 按住 Ctrl + Shift 执行 autoin 会弹出目录选择器。
+4. 主入口枚举 selected_or_temp_dir\*.stl。
+5. 每个 .stl 进入 sub_180585B30 做 XML 初筛。
+6. 初筛链要求：
+   DrawingRoot / HViewPorts / ViewPort / PartDetailDrawing / General-Info。
+7. 初筛读取 General-Info.ExportYesNo。
+8. 真实 todo66 Detail01..04 均为 ExportYesNo="T"。
+```
+
+详细记录：
+
+```text
+docs/validation/golden_cases/GC-004/cad_plugin_autoin_path_probe_20260618.md
 ```
 
 ## 代码生成入口
@@ -89,11 +118,20 @@ tsrs_detail_package_writer_tests
 ```text
 1. 打开 AutoCAD。
 2. 加载 / 确认旧图石 CAD 插件可用。
-3. 执行 autoin。
-4. 选择本目录下 minimal_detail_package。
+3. 按住 Ctrl + Shift 执行 autoin / 点击导入按钮。
+4. 如果弹出目录选择器，选择本目录下 minimal_detail_package。
 5. 观察是否成功导入。
 6. 截图保存到本目录。
 7. 回填下方验证记录。
+```
+
+备选：
+
+```text
+1. 创建并清空 %TEMP%\msohtmplcllip。
+2. 将 minimal_detail_package 内的 Detail01.stl 复制进去。
+3. 可同时复制 Detail.xml，但当前主入口证据显示 autoin 先枚举 *.stl。
+4. 正常执行 autoin。
 ```
 
 ## 验证记录

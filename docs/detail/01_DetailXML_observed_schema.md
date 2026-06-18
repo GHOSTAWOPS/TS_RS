@@ -213,6 +213,29 @@ CutPlanePosX / CutPlanePosY / CutPlanePosZ
 DrawTaoTong
 ```
 
+TODO-024 / GC-004 追加观察：
+
+```text
+旧 AutoCAD 插件 autoin 初筛会读取 General-Info.ExportYesNo。
+
+IDA MCP：
+  FDrawing.arx / sub_180585B30
+  0x180585d26  "ExportYesNo"
+  0x180585dc9  读取常量 "F"
+  0x180585e3d  test edi, edi
+  0x180585e3f  setnz r15b
+
+当前理解：
+  ExportYesNo == "F" -> 返回 0
+  ExportYesNo != "F" -> 返回 1
+
+真实 todo66 Detail01..04 均为：
+  ExportYesNo="T"
+
+因此 TS_RS GC-004 minimal writer 使用：
+  ExportYesNo="T"
+```
+
 线容器：
 
 ```text

@@ -296,7 +296,7 @@ std::string minimalSheetXml(const tsrs::detail::DetailMinimalSectionLinePackage&
         << "    <ViewPort>\n"
         << "      <PartDetailDrawing num=\"1\">\n"
         << "        <General-Info DrawingName=\"" << xmlEscaped(package.drawingName)
-        << "\" DrawingUnit=\"mm\" DrawingScale=\"1\" GeneralScale=\"1\"/>\n"
+        << "\" DrawingUnit=\"mm\" DrawingScale=\"1\" GeneralScale=\"1\" ExportYesNo=\"T\"/>\n"
         << "        <continue-line><lines/></continue-line>\n"
         << "        <hidden-line><lines/></hidden-line>\n"
         << "        <central-line><lines/></central-line>\n"

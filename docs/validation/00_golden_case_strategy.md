@@ -166,6 +166,22 @@ TODO-024
 docs/validation/golden_cases/GC-004/minimal_detail_package/
 ```
 
+当前已知 autoin 入口证据：
+
+```text
+默认路径：
+  %TEMP%\msohtmplcllip
+
+推荐人工选择路径：
+  Ctrl + Shift + autoin
+
+文件枚举：
+  selected_or_temp_dir\*.stl
+
+GC-004 初筛字段：
+  General-Info ExportYesNo="T"
+```
+
 当前状态：
 
 ```text

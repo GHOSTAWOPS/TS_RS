@@ -47,6 +47,13 @@ Detail.xml = 14 bytes，内容为 <StyleRoot/>。
 
 DetailNN.stl = XML 文本，不是标准 STL 三角网格。
 真实工程图、剖切线、钢筋组、下料表字段主要在 DetailNN.stl。
+
+2026-06-18 IDA MCP 复核 AutoCAD 插件 autoin：
+  autoin 主入口枚举 selected_or_temp_dir\*.stl。
+  普通 autoin 默认路径为 %TEMP%\msohtmplcllip。
+  Ctrl + Shift + autoin 可弹出目录选择器。
+  每个 .stl 初筛要求 DrawingRoot / HViewPorts / ViewPort / PartDetailDrawing / General-Info。
+  初筛读取 General-Info.ExportYesNo。
 ```
 
 ## 证据等级
@@ -215,6 +222,7 @@ TODO-023 DetailPackageWriter round-trip
 
 TODO-024 极简 Detail 包生成
   -> 代码侧已生成 Detail.xml + Detail01.stl XML 一条 section-line。
+  -> 根据 autoin 初筛证据补入 General-Info ExportYesNo="T"。
   -> 已新增 GC-004 固定验证包。
   -> 人工 CAD 插件 autoin 验证仍未闭合。
 ```
@@ -238,4 +246,5 @@ GAP-DETAIL-003：StbTable / MaterialTable 是否只应写主图 Detail01。
 GAP-DETAIL-004：未知节点 / 属性的顺序是否敏感。
 GAP-DETAIL-005：AutoCAD 插件对极简 section-line 包的最低字段要求。GC-004 等待人工验证。
 GAP-DETAIL-006：下料表.xls 与 DetailNN.stl 中 StbTables 是否同源同事务。
+GAP-DETAIL-007：Detail.xml 是否在 autoin 后续样式路径中被读取；当前只确认主入口先枚举 *.stl。
 ```

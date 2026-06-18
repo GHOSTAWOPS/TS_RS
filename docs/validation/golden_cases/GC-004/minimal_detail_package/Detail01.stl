@@ -2,7 +2,7 @@
   <HViewPorts>
     <ViewPort>
       <PartDetailDrawing num="1">
-        <General-Info DrawingName="TS_RS GC-004 minimal section line" DrawingUnit="mm" DrawingScale="1" GeneralScale="1"/>
+        <General-Info DrawingName="TS_RS GC-004 minimal section line" DrawingUnit="mm" DrawingScale="1" GeneralScale="1" ExportYesNo="T"/>
         <continue-line><lines/></continue-line>
         <hidden-line><lines/></hidden-line>
         <central-line><lines/></central-line>

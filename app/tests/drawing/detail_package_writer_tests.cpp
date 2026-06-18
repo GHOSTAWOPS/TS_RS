@@ -440,11 +440,12 @@ int expectMinimalSectionLinePackageGeneration()
     const std::string sheetXml = readTextFile(outputDir / "Detail01.stl");
     if (sheetXml.find("<DrawingRoot>") == std::string::npos
         || sheetXml.find("<section-line>") == std::string::npos
+        || sheetXml.find("ExportYesNo=\"T\"") == std::string::npos
         || sheetXml.find("<Line1 start_x=\"10\" start_y=\"20\" end_x=\"110.5\" end_y=\"220.25\"")
             == std::string::npos
         || sheetXml.find("DrawingName=\"TS_RS minimal &lt;section&gt; &amp; line &quot;quote&quot; &apos;apostrophe&apos; &gt;\"")
             == std::string::npos) {
-        return fail("expected minimal Detail01.stl to contain escaped drawing name and one section Line1");
+        return fail("expected minimal Detail01.stl to contain autoin ExportYesNo, escaped drawing name, and one section Line1");
     }
 
     const tsrs::detail::DetailPackageReader reader;

@@ -19,13 +19,14 @@ TS_RS 可以生成一个 XML well-formed 的极简 Detail 包。
 Detail.xml 固定写 <StyleRoot/>。
 Detail01.stl root = DrawingRoot。
 Detail01.stl 至少包含 HViewPorts / ViewPort / PartDetailDrawing / section-line。
+Detail01.stl 的 General-Info 写入 ExportYesNo="T"，用于对齐旧 CAD 插件 autoin 初筛。
 Reader 能重新读回，knownSummary 统计到 1 个 ViewPort、1 个 PartDetailDrawing、1 条 section-line。
 ```
 
 本节点尚未证明：
 
 ```text
-旧 AutoCAD 插件 autoin 已接受该极简包。
+旧 AutoCAD 插件 autoin 能接受该极简包。
 Detail 包协议最低必填字段已完全闭合。
 DrawingModel / RebarModel 到 Detail 包的正式映射已完成。
 钢筋生成器、Viewer 选择系统或工程图标注已经接入 Detail。
@@ -72,13 +73,14 @@ DetailPackageWriter::writeMinimalSectionLinePackage(
 2. 创建输出目录。
 3. 写 Detail.xml = <StyleRoot/>。
 4. 写 Detail01.stl = DrawingRoot + HViewPorts + section-line。
-5. 用 DetailPackageReader 重新读取输出目录。
-6. 校验文件数为 2。
-7. 校验 Detail01.stl 包含：
+5. General-Info 写入 ExportYesNo="T"。
+6. 用 DetailPackageReader 重新读取输出目录。
+7. 校验文件数为 2。
+8. 校验 Detail01.stl 包含：
    - viewPortCount = 1
    - partDetailDrawingCount = 1
    - sectionLineCount = 1
-8. 失败时返回 DETAIL_WRITE_FAILED 或 DETAIL_WRITE_VALIDATE_FAILED。
+9. 失败时返回 DETAIL_WRITE_FAILED 或 DETAIL_WRITE_VALIDATE_FAILED。
 ```
 
 当前极简 `Detail01.stl` 包含：
@@ -88,7 +90,7 @@ DrawingRoot
   HViewPorts
     ViewPort
       PartDetailDrawing
-        General-Info
+        General-Info / ExportYesNo="T"
         continue-line
         hidden-line
         central-line
@@ -107,13 +109,69 @@ DrawingRoot
 1. minimal package 写出 2 个文件。
 2. Detail.xml 字节内容为 <StyleRoot/>\n。
 3. Detail01.stl 含 DrawingRoot / section-line / Line1。
-4. drawingName 中 XML 特殊字符会转义。
-5. Reader 能重新读回生成包。
-6. knownSummary 能统计 1 个 viewport、1 个 part drawing、1 条 section-line。
-7. NaN / Inf 坐标被拒绝。
-8. 坐标非法时不写 Detail.xml / Detail01.stl。
-9. GC-004 固定验证包可被 Reader 读取。
-10. GC-004 固定验证包和 Writer 同参数输出字节一致。
+4. Detail01.stl 含 General-Info ExportYesNo="T"。
+5. drawingName 中 XML 特殊字符会转义。
+6. Reader 能重新读回生成包。
+7. knownSummary 能统计 1 个 viewport、1 个 part drawing、1 条 section-line。
+8. NaN / Inf 坐标被拒绝。
+9. 坐标非法时不写 Detail.xml / Detail01.stl。
+10. GC-004 固定验证包可被 Reader 读取。
+11. GC-004 固定验证包和 Writer 同参数输出字节一致。
+```
+
+## 2026-06-18 autoin 初筛修正
+
+用户执行 TODO-024 人工验证时，普通 autoin 不显示路径选择且将 `Detail01.stl`
+放入 `%TEMP%\msohtmplcllip` 后 AutoCAD 崩溃。
+
+随后用 IDA MCP 复核：
+
+```text
+FDrawing.arx / FDrawing.arx.i64
+session = fdrawing_arx
+
+autoin 主逻辑：
+  sub_180556580
+
+路径机制：
+  普通 autoin -> %TEMP%\msohtmplcllip
+  Ctrl + Shift + autoin -> SHBrowseForFolderW 目录选择器
+
+文件枚举：
+  selected_or_temp_dir\*.stl
+
+每个 .stl 初筛：
+  sub_180004A0C -> sub_180585B30
+  DrawingRoot / HViewPorts / ViewPort / PartDetailDrawing / General-Info
+  General-Info.ExportYesNo
+```
+
+`sub_180585B30` 对 `ExportYesNo` 的控制流：
+
+```text
+0x180585d26  "ExportYesNo"
+0x180585dc9  读取常量 "F"
+0x180585e3d  test edi, edi
+0x180585e3f  setnz r15b
+```
+
+结合真实 todo66 样本：
+
+```text
+Detail01.stl .. Detail04.stl 均为 ExportYesNo="T"
+```
+
+因此当前 GC-004 minimal writer 补入：
+
+```text
+ExportYesNo="T"
+```
+
+注意：
+
+```text
+这只关闭 autoin 初筛字段缺失问题。
+旧 CAD 插件是否接受极简 section-line 包，仍需人工 autoin 验证。
 ```
 
 ## RED / GREEN 记录
@@ -178,7 +236,7 @@ Detail.xml
   EA2FB44459C41800DF2251676DF6A72FB7B205FE7EB859925BA1AA2AFECEFFC0
 
 Detail01.stl
-  6A1FB5CBC165F1F26D3D8BE5D91E3F937CCF446109EDB84953F724B69744932D
+  410F70E1EB77C0669933309DC13A4840649A98CB95CFD6F32BA03447725467DC
 ```
 
 当前状态：
@@ -208,8 +266,9 @@ autoin 尚未人工执行。
 | --- | --- | --- |
 | TODO024-GAP-001 | 旧 AutoCAD 插件 autoin 尚未人工验证。 | 需要用户在 AutoCAD 插件环境中验证 GC-004 包。 |
 | TODO024-GAP-002 | 极简包最低字段是否足够未知。 | autoin 失败后按错误补最小字段，不一次性复制真实复杂包。 |
-| TODO024-GAP-003 | `General-Info` 当前只写少数字段。 | 仅服务 P0 极简验证，不能作为正式工程图字段映射。 |
+| TODO024-GAP-003 | `General-Info` 当前只写少数字段。 | 已按 autoin 初筛补 `ExportYesNo="T"`；其余字段仅服务 P0 极简验证，不能作为正式工程图字段映射。 |
 | TODO024-GAP-004 | `StbTables` 当前未写。 | 如果 CAD 插件要求该节点，下一轮按 autoin 结果补。 |
+| TODO024-GAP-005 | Detail.xml 是否被 autoin 后续样式路径读取未知。 | 当前只确认主入口先枚举 `*.stl`。 |
 
 ## 下一步
 
