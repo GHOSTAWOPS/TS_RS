@@ -190,9 +190,9 @@ web-gpt-pro-review 固定要求：
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
 当前 next：TODO-020D TopologyBindingRegistry P1 hardening。
-TODO-024 处于 blocked：
-代码侧极简 Detail 包生成已完成，
-但还需要旧 AutoCAD 插件 autoin 人工验证。
+TODO-024 已完成：
+v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
+done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
 ```
 
 目标：
@@ -202,8 +202,9 @@ TODO-024 处于 blocked：
 TODO-020D / TODO-020E / TODO-020G 可继续推进，
 不必等待 TODO-024 autoin。
 
-GC-004 autoin 人工验证通过前，
-TODO-021 Viewer 选择系统和 generator->Detail 闭环仍不得放行。
+TODO-021 Viewer 选择系统仍必须等待 TODO-020D / TODO-020E / TODO-020G 完成。
+generator->Detail 闭环仍需 RebarModel / CommandService / Detail 映射后续节点，
+不因 TODO-024 done 直接放行。
 ```
 
 已完成：
@@ -221,9 +222,8 @@ Reader -> Writer preserve-mode rawXml passthrough 已完成。
 文件数量、knownSummary、未知节点 / 属性 P0 统计不减少。
 
 TODO-024 极简 Detail 包生成。
-代码侧 Detail.xml + Detail01.stl 已生成。
-GC-004 固定验证包已提交。
-autoin 人工验证未闭合。
+v2_empty_groups minimal sheet 已生成并通过人工导入验证。
+GC-004 状态为 manual_autoin_passed_v2。
 ```
 
 输出：
@@ -353,27 +353,24 @@ TODO-022：
   docs/legal/00_reverse_engineering_and_resource_reuse_boundary.md
 ```
 
-当前阻塞节点：
+当前 Detail 前置状态：
 
 ```text
 TODO-024：
-  极简 Detail 包生成 + autoin 验证。
+  极简 Detail 包生成 + 插件导入验证。
 
-边界：
-  只改 Detail minimal generate / export 相关代码、测试和文档。
-  不接 Viewer。
-  不接钢筋生成器。
-  不把 Detail 字段反向污染 RebarModel。
-  需要旧 AutoCAD 插件 autoin 人工验证。
+状态：
+  done。
 
-代码侧输出：
+输出：
   docs/architecture/19_TODO-024_MinimalDetailPackage实现记录.md
   docs/validation/golden_cases/GC-004/
+  docs/detail/03_MinimalDetailPackage_v2_protocol.md
 
-当前阻塞：
-  GC-004 minimal_detail_package 尚未由旧 AutoCAD 插件 autoin 人工验证。
-  验证通过前 TODO-024 不改 done。
-  但 TODO-024 不再阻塞 TODO-020D / TODO-020E / TODO-020G。
+边界：
+  v2_empty_groups 是 P0 minimal sheet baseline。
+  v3_one_pointstb 只作为后续最小钢筋组兼容样本。
+  不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。
 ```
 
 中期顺序：
@@ -417,10 +414,10 @@ TODO-022 / TODO-023 / TODO-024 前置 Detail 读写和极简 autoin 验证，
 是为了先验证老图石 CAD 插件兼容出口，
 不要直接跳到 Viewer 选择系统。
 
-TODO-024 autoin 尚未闭合时：
+TODO-024 已闭合到 minimal sheet 级别：
   - 可以继续 TODO-020D / TODO-020E / TODO-020G。
-  - 不能进入 TODO-021。
-  - 不能进入 generator->Detail 真实闭环。
+  - TODO-021 仍必须等待 TODO-020D / TODO-020E / TODO-020G。
+  - generator->Detail 真实闭环仍等待 RebarModel / CommandService / Detail 映射后续节点。
 
 TODO-020D / TODO-020E / TODO-020G 必须在 TODO-021 前完成，
 避免 Viewer 选择绕过 stable binding 或 CommandService。
@@ -457,13 +454,7 @@ P0 / 架构 / 协议 / 真实环境门禁节点推送后，必须打审查包并
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
 当前 next 为 TODO-020D。
-TODO-024 仍为 blocked，但只阻塞 TODO-021 和 generator->Detail 闭环。
+TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
-TODO-024 blocked 处理：
-使用 docs/validation/golden_cases/GC-004/minimal_detail_package/
-在旧 AutoCAD 插件中执行 autoin。
-验证通过后回填 GC-004 README，
-再将 TODO-024 改为 done。
-验证失败则记录错误提示和截图，
-下一轮只补最小缺失 Detail 字段。
+注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。
 ```

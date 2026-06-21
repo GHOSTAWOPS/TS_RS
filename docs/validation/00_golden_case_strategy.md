@@ -151,7 +151,7 @@ P0 只验收中心线，不验收完整投影、过孔、弯钩、实体化。
 
 ```text
 生成 Detail.xml + Detail01.stl XML，
-人工用老图石 CAD 插件 autoin 导入。
+人工用老图石 CAD 插件导入按钮路径导入。
 ```
 
 对应 todo：
@@ -160,7 +160,7 @@ P0 只验收中心线，不验收完整投影、过孔、弯钩、实体化。
 TODO-024
 ```
 
-当前代码侧输入：
+当前输入：
 
 ```text
 docs/validation/golden_cases/GC-004/minimal_detail_package/
@@ -185,15 +185,16 @@ GC-004 初筛字段：
 当前状态：
 
 ```text
-blocked_waiting_manual_autoin
+manual_autoin_passed_v2
 ```
 
 验收：
 
 ```text
-CAD 插件能导入。
-能看到一条 section-line 或最小图元。
-记录 AutoCAD / 插件版本、操作步骤、截图、输出文件 hash。
+CAD 插件能导入 v2 minimal sheet。
+Test A / Test B / Test C 全部通过。
+记录 AutoCAD / 插件版本、操作步骤、输出文件 hash。
+截图未附加时明确写 screenshot not attached。
 ```
 
 ## 容差规则

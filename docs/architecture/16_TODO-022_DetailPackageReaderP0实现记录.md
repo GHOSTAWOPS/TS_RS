@@ -289,7 +289,7 @@ app/src/application
 | TODO022-GAP-001 | rawXml 已保留，但 Writer round-trip 尚未实现。 | TODO-023。 |
 | TODO022-GAP-002 | unknownChildren 已记录未知 element 路径 / 名称 / namespace，但不做完整未知子树模型。 | TODO-023 preserve-mode 优先 rawXml 原文回写。 |
 | TODO022-GAP-003 | rawAttributes 已记录属性名和值，但不保留原始属性顺序 / quote 风格。 | TODO-023 只做 rawXml passthrough；后续结构化 XML mutation 前再扩展。 |
-| TODO022-GAP-004 | CAD 插件 autoin 尚未验证。 | TODO-024。 |
+| TODO022-GAP-004 | CAD 插件 minimal sheet 导入验证。 | 已由 TODO-024 / GC-004 manual_autoin_passed_v2 关闭；完整 Detail 兼容仍是后续缺口。 |
 | TODO022-GAP-005 | DetailNN.stl 编号缺口目前只 warning。 | Writer / package validation 阶段继续收紧。 |
 | TODO022-GAP-006 | 非 UTF-8 / GBK 旧 Detail XML 尚未用真实样本验证。 | 后续收集更多旧包时补编码观测。 |
 

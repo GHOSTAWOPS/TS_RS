@@ -9,12 +9,14 @@
 2. autoin 对每个 DetailNN.stl 的第一层 XML 初筛字段是什么。
 ```
 
-它不证明 TS_RS 的极简 Detail 包已经被 CAD 插件接受。
+它本身只证明路径和初筛字段。
+后续 2026-06-21 人工验证已证明 v2_empty_groups minimal sheet
+可被旧图石 AutoCAD 插件导入按钮路径接受。
 
-TODO-024 仍保持：
+TODO-024 当前状态：
 
 ```text
-blocked_waiting_manual_autoin
+manual_autoin_passed_v2
 ```
 
 ## 逆向对象
@@ -236,18 +238,20 @@ General-Info ExportYesNo="T"
 3. 极简 XML 仍可能缺少 CAD 插件后续创建图元需要的字段。
 ```
 
-后续应使用当前新版 GC-004 包重新验证。
+后续已使用 v2_empty_groups / v3_one_pointstb 重新验证。
+v2_empty_groups 作为 TODO-024 P0 baseline。
 
 ## 当前仍未关闭的 GAP
 
 ```text
 GAP-GC004-AUTOIN-001：
-  CAD 插件后续是否要求 StbTables / StbDetailDrawing / 其他 General-Info 字段。
+  v2_empty_groups 已证明 CAD 插件 minimal sheet 路径接受
+  StbTables / StbDetailDrawing / 完整 General-Info 组合；
+  完整 StbGroup / 表格仍未验证。
 
 GAP-GC004-AUTOIN-002：
   Detail.xml 是否在其他样式路径中被读取。
 
 GAP-GC004-AUTOIN-003：
-  极简 section-line 是否足够让 CAD 插件创建可见图元。
+  v2_empty_groups Test C 已确认 v2 图元被读取 / 显示。
 ```
-

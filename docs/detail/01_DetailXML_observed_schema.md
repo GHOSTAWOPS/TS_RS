@@ -234,6 +234,18 @@ IDA MCP：
 
 因此 TS_RS GC-004 minimal writer 使用：
   ExportYesNo="T"
+
+2026-06-21 人工验证补充：
+  旧 v1 minimal package 会导致 AutoCAD 插件 unhandled e06d7363h exception。
+  v2_empty_groups 已通过 AutoCAD 2020 + 旧图石插件导入按钮路径验证。
+  v3_one_pointstb 也已通过，但只作为后续最小 pointStb 样本。
+  TODO-024 P0 baseline = v2_empty_groups。
+
+v2_empty_groups 关键观察：
+  DrawingRoot 下必须包含 StbTables。
+  General-Info 使用 DrawingUnit="1000"，不是 DrawingUnit="mm"。
+  ZValue 使用冒号分隔格式，例如 0.000000:0.000000:16.980000。
+  StbDetailDrawing / StbGroups 可为空，stbGroupCount="0"。
 ```
 
 线容器：
@@ -383,4 +395,5 @@ faceEdgeCount
 4. ZValue 的三个数值语义仍需确认。
 5. lineStb / pointStb / arcStb 等 stbType 的完整取值仍需确认。
 6. Detail02+ 无 StbTable 是否为固定策略还是样本偶然。
+7. v2_empty_groups 只证明空 StbGroups minimal sheet 可导入；完整 StbGroup / StbTable / MaterialTable 仍需单独验证。
 ```

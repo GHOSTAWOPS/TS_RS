@@ -1,25 +1,40 @@
-# GC-004 极简 Detail autoin
+# GC-004 Minimal Detail v2 Autoin
 
 ## 目标
 
 验证 TODO-024 的最小 Detail 兼容出口：
 
 ```text
-TS_RS 极简 Detail 包
-  -> 旧 AutoCAD 插件 autoin
-  -> 能导入并显示一条 section-line 或给出明确错误
+TS_RS v2 minimal sheet DetailNN.stl
+  -> 旧图石 AutoCAD 插件导入按钮路径
+  -> CAD 插件能读取 / 导入 / 显示最小 sheet 图元
 ```
 
-本 case 只验证旧 CAD 插件对极简 Detail 包的最低容忍度。
+本 case 只验证旧 CAD 插件对 minimal sheet 的最低容忍度。
 
 不验证：
 
 ```text
 完整工程图。
-钢筋组 / 下料表。
+钢筋组。
+StbTable / MaterialTable。
 DrawingModel / RebarModel 映射。
 真实剖切、投影、标注。
 ```
+
+## 当前状态
+
+```text
+manual_autoin_passed_v2
+```
+
+done 含义：
+
+```text
+minimal sheet DetailNN.stl protocol reached manual autoin pass
+```
+
+done 不表示完整 Detail 兼容已经完成。
 
 ## 输入包
 
@@ -32,7 +47,14 @@ docs/validation/golden_cases/GC-004/minimal_detail_package/Detail01.stl
 
 ```text
 Detail.xml = <StyleRoot/>
-Detail01.stl = DrawingRoot + HViewPorts + PartDetailDrawing + General-Info ExportYesNo="T" + section-line/Line1
+
+Detail01.stl =
+  DrawingRoot
+  StbTables
+  HViewPorts / ViewPort
+  PartDetailDrawing / General-Info
+  continue-line / hidden-line / central-line / section-line / hatch-line / steeljoint-line
+  StbDetailDrawing / StbGroups stbGroupCount="0"
 ```
 
 当前 SHA256：
@@ -42,18 +64,90 @@ Detail.xml
   EA2FB44459C41800DF2251676DF6A72FB7B205FE7EB859925BA1AA2AFECEFFC0
 
 Detail01.stl
-  410F70E1EB77C0669933309DC13A4840649A98CB95CFD6F32BA03447725467DC
+  63ED30850AE2BFFA678DCFD8A2BD3DBA5F29C3DC30A9442763119EB5EA980E90
 ```
 
-注意：
+说明：
 
 ```text
-GC-004 当前是 writer regression fixture, not compatibility proof。
-它只能锁定 TS_RS 当前 Writer 输出形状。
-旧 CAD 插件兼容性只能由 autoin 人工验证记录证明。
+Detail.xml 继续保留 <StyleRoot/>，用于普通 Detail 包目录兼容。
+但本次按钮导入路径实际读取临时目录中的 DetailNN.stl。
+Detail.xml 不是本次按钮路径的必要条件。
 ```
 
-## autoin 逆向证据摘要
+## 人工验证记录
+
+验证环境：
+
+```text
+AutoCAD 版本：AutoCAD 2020
+插件导入方式：使用图石当前可成功的 AutoCAD 插件导入按钮路径
+临时目录：M:\Device\C\Users\x\AppData\Local\Temp\msohtmplcllip
+验证方式：图石临时目录替换法
+截图：screenshot not attached
+```
+
+验证结果：
+
+```text
+旧 v1 minimal package:
+  failed
+  AutoCAD 插件 unhandled e06d7363h exception
+
+v2_empty_groups:
+  passed
+
+v3_one_pointstb:
+  passed
+  后续最小 StbGroup / pointStb 兼容样本
+  不是 TODO-024 P0 baseline
+```
+
+分项测试：
+
+```text
+Test A:
+  只放 v2 Detail01.stl
+  独立单 sheet 导入成功
+
+Test B:
+  用 v2 替换真实包 Detail01.stl
+  导入成功
+
+Test C:
+  用 v2 替换真实包 Detail03.stl
+  导入成功
+  已确认 v2 图元确实被读取 / 显示
+```
+
+## 代码生成入口
+
+对应实现：
+
+```text
+app/src/drawing/detail/DetailPackageWriter.cpp
+DetailPackageWriter::writeMinimalSectionLinePackage
+```
+
+对应测试：
+
+```text
+tsrs_detail_package_writer_tests
+```
+
+自动验证覆盖：
+
+```text
+1. 该目录是可读取的两文件 Detail 包。
+2. Detail01.stl 包含 v2 baseline 节点。
+3. Detail01.stl 包含 StbTables。
+4. Detail01.stl 包含 StbDetailDrawing / StbGroups。
+5. StbGroups 的 stbGroupCount 为 0。
+6. section-line 至少有 1 条 Line。
+7. 该目录内容与 writeMinimalSectionLinePackage 同参数输出字节一致。
+```
+
+## 历史逆向证据
 
 2026-06-18 已用 IDA MCP 复核旧 AutoCAD 图石插件：
 
@@ -82,117 +176,11 @@ IDA MCP session = fdrawing_arx
 docs/validation/golden_cases/GC-004/cad_plugin_autoin_path_probe_20260618.md
 ```
 
-## 代码生成入口
-
-对应实现：
-
-```text
-app/src/drawing/detail/DetailPackageWriter.h
-app/src/drawing/detail/DetailPackageWriter.cpp
-```
-
-对应 API：
-
-```text
-DetailPackageWriter::writeMinimalSectionLinePackage
-```
-
-对应测试：
-
-```text
-tsrs_detail_package_writer_tests
-```
-
-自动验证覆盖：
-
-```text
-1. 该目录是可读取的两文件 Detail 包。
-2. Detail01.stl 统计到 1 条 section-line。
-3. 该目录内容与 writeMinimalSectionLinePackage 同参数输出字节一致。
-```
-
-## 人工验证步骤
-
-在安装了旧图石 AutoCAD 插件的机器上执行：
-
-```text
-1. 打开 AutoCAD。
-2. 加载 / 确认旧图石 CAD 插件可用。
-3. 按住 Ctrl + Shift 执行 autoin / 点击导入按钮。
-4. 如果弹出目录选择器，选择本目录下 minimal_detail_package。
-5. 观察是否成功导入。
-6. 截图保存到本目录。
-7. 回填下方验证记录。
-```
-
-备选：
-
-```text
-1. 创建并清空 %TEMP%\msohtmplcllip。
-2. 将 minimal_detail_package 内的 Detail01.stl 复制进去。
-3. 可同时复制 Detail.xml，但当前主入口证据显示 autoin 先枚举 *.stl。
-4. 正常执行 autoin。
-```
-
-## 验证记录
-
-当前状态：
-
-```text
-blocked_waiting_manual_autoin
-```
-
-原因：
-
-```text
-当前 Codex 环境无法直接执行用户 AutoCAD 插件 autoin。
-```
-
-待回填：
-
-```text
-验证日期：
-验证人：
-机器：
-AutoCAD 版本：
-旧图石 CAD 插件版本 / 来源：
-autoin 命令是否可用：
-导入结果：pass / fail
-可见结果：
-错误提示：
-截图文件：
-输出文件：
-备注：
-```
-
-## 判定规则
-
-通过：
-
-```text
-CAD 插件能导入该目录。
-AutoCAD 中能看到一条 section-line 或等价最小图元。
-```
-
-失败但可继续：
-
-```text
-CAD 插件给出明确错误。
-记录错误后，下一轮只补最小缺失字段。
-```
-
-失败且阻塞：
-
-```text
-autoin 命令不可用。
-CAD 插件未安装。
-CAD 插件启动依赖缺失。
-```
-
 ## 当前结论
 
 ```text
-代码侧极简包生成已具备验证输入。
-旧 AutoCAD 插件兼容尚未闭合。
-TODO-024 在人工 autoin 通过前不能作为 Detail 兼容完成证据。
+TODO-024 可以标记 done。
+P0 minimal sheet baseline 采用 v2_empty_groups。
+v3_one_pointstb 仅作为后续最小钢筋组兼容样本。
+完整 Detail / StbGroup / StbTable / MaterialTable 仍未完成。
 ```

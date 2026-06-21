@@ -100,6 +100,24 @@ std::optional<tsrs::detail::DetailFileSnapshot> findFile(
     return std::nullopt;
 }
 
+bool containsAllLinePrimitiveContainers(const std::string& sheetXml, const std::string& category)
+{
+    const std::string startTag = "<" + category + ">";
+    const std::string endTag = "</" + category + ">";
+    const std::size_t start = sheetXml.find(startTag);
+    const std::size_t end = sheetXml.find(endTag);
+    if (start == std::string::npos || end == std::string::npos || end <= start) {
+        return false;
+    }
+    const std::string categoryXml = sheetXml.substr(start, end - start);
+    return categoryXml.find("<lines") != std::string::npos
+        && categoryXml.find("<circles") != std::string::npos
+        && categoryXml.find("<Arcs") != std::string::npos
+        && categoryXml.find("<Ellipses") != std::string::npos
+        && categoryXml.find("<EllipseArcs") != std::string::npos
+        && categoryXml.find("<Splines") != std::string::npos;
+}
+
 bool sameSummary(
     const tsrs::detail::DetailKnownSummary& lhs,
     const tsrs::detail::DetailKnownSummary& rhs)
@@ -439,13 +457,41 @@ int expectMinimalSectionLinePackageGeneration()
 
     const std::string sheetXml = readTextFile(outputDir / "Detail01.stl");
     if (sheetXml.find("<DrawingRoot>") == std::string::npos
+        || sheetXml.find("<StbTables/>") == std::string::npos
         || sheetXml.find("<section-line>") == std::string::npos
+        || sheetXml.find("<StbDetailDrawing>") == std::string::npos
+        || sheetXml.find("<StbGroups stbGroupCount=\"0\"/>") == std::string::npos
         || sheetXml.find("ExportYesNo=\"T\"") == std::string::npos
+        || sheetXml.find("DrawingUnit=\"1000\"") == std::string::npos
+        || sheetXml.find("DrawingUnit=\"mm\"") != std::string::npos
         || sheetXml.find("<Line1 start_x=\"10\" start_y=\"20\" end_x=\"110.5\" end_y=\"220.25\"")
             == std::string::npos
+        || sheetXml.find("ZValue=\"0.000000:0.000000:") == std::string::npos
+        || sheetXml.find("ZValue=\"0 0 0\"") != std::string::npos
         || sheetXml.find("DrawingName=\"TS_RS minimal &lt;section&gt; &amp; line &quot;quote&quot; &apos;apostrophe&apos; &gt;\"")
             == std::string::npos) {
-        return fail("expected minimal Detail01.stl to contain autoin ExportYesNo, escaped drawing name, and one section Line1");
+        return fail("expected v2 minimal Detail01.stl to contain StbTables, v2 General-Info, StbGroups=0, escaped drawing name, and one section Line1");
+    }
+
+    const std::string lineCategories[] = {
+        "continue-line",
+        "hidden-line",
+        "central-line",
+        "section-line",
+        "hatch-line",
+        "steeljoint-line",
+    };
+    for (const std::string& category : lineCategories) {
+        if (!containsAllLinePrimitiveContainers(sheetXml, category)) {
+            return fail("expected v2 line category to keep all primitive containers: " + category);
+        }
+    }
+    if (sheetXml.find("<StbGroup1") != std::string::npos
+        || sheetXml.find("<StbGeo1") != std::string::npos
+        || sheetXml.find("<StbTable ") != std::string::npos
+        || sheetXml.find("<StbTable>") != std::string::npos
+        || sheetXml.find("<MaterialTable") != std::string::npos) {
+        return fail("expected TODO-024 P0 v2 minimal sheet not to emit StbGroup/StbGeo/StbTable/MaterialTable");
     }
 
     const tsrs::detail::DetailPackageReader reader;
@@ -462,8 +508,12 @@ int expectMinimalSectionLinePackageGeneration()
     }
     if (sheet->knownSummary.viewPortCount != 1
         || sheet->knownSummary.partDetailDrawingCount != 1
-        || sheet->knownSummary.sectionLineCount != 1) {
-        return fail("expected generated package to contain one viewport, one part drawing, one section line");
+        || sheet->knownSummary.sectionLineCount < 1
+        || sheet->knownSummary.stbTableCount != 0
+        || sheet->knownSummary.materialTableCount != 0
+        || sheet->knownSummary.stbGroupsContainerCount != 1
+        || sheet->knownSummary.stbGroupEntryCount != 0) {
+        return fail("expected generated v2 package to contain one viewport, one part drawing, section lines, empty StbGroups, and no tables");
     }
     return 0;
 }
@@ -605,8 +655,35 @@ int expectCheckedInGc004FixtureIsReadable()
     if (!sheet
         || sheet->knownSummary.viewPortCount != 1
         || sheet->knownSummary.partDetailDrawingCount != 1
-        || sheet->knownSummary.sectionLineCount != 1) {
-        return fail("expected checked-in GC-004 fixture to contain one section-line");
+        || sheet->knownSummary.sectionLineCount < 1
+        || sheet->knownSummary.stbTableCount != 0
+        || sheet->knownSummary.materialTableCount != 0
+        || sheet->knownSummary.stbGroupsContainerCount != 1
+        || sheet->knownSummary.stbGroupEntryCount != 0) {
+        return fail("expected checked-in GC-004 fixture to contain v2 empty-groups minimal sheet");
+    }
+
+    const std::string sheetXml = readTextFile(fixture / "Detail01.stl");
+    if (sheetXml.find("<StbTables/>") == std::string::npos
+        || sheetXml.find("DrawingUnit=\"1000\"") == std::string::npos
+        || sheetXml.find("<StbGroups stbGroupCount=\"0\"/>") == std::string::npos
+        || sheetXml.find("ZValue=\"0.000000:0.000000:") == std::string::npos
+        || sheetXml.find("DrawingUnit=\"mm\"") != std::string::npos
+        || sheetXml.find("ZValue=\"0 0 0\"") != std::string::npos) {
+        return fail("expected checked-in GC-004 fixture to use v2 autoin-passed protocol");
+    }
+    const std::string lineCategories[] = {
+        "continue-line",
+        "hidden-line",
+        "central-line",
+        "section-line",
+        "hatch-line",
+        "steeljoint-line",
+    };
+    for (const std::string& category : lineCategories) {
+        if (!containsAllLinePrimitiveContainers(sheetXml, category)) {
+            return fail("expected checked-in GC-004 v2 line category containers: " + category);
+        }
     }
     return 0;
 }
@@ -622,11 +699,11 @@ int expectCheckedInGc004FixtureMatchesWriterOutput()
         makeTempDirectory("tsrs_detail_package_writer_gc004_compare_output");
 
     tsrs::detail::DetailMinimalSectionLinePackage request;
-    request.drawingName = "TS_RS GC-004 minimal section line";
-    request.sectionLine.startX = 10.0;
-    request.sectionLine.startY = 20.0;
-    request.sectionLine.endX = 110.5;
-    request.sectionLine.endY = 220.25;
+    request.drawingName = "1";
+    request.sectionLine.startX = 16.98;
+    request.sectionLine.startY = 0.0;
+    request.sectionLine.endX = 0.0;
+    request.sectionLine.endY = 0.0;
 
     const tsrs::detail::DetailPackageWriter writer;
     const tsrs::detail::DetailPackageWriteResult writeResult =

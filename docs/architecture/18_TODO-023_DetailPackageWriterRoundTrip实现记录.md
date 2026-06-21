@@ -267,7 +267,7 @@ domain/rebar not present
 | --- | --- | --- |
 | TODO023-GAP-001 | Writer P0 只做 rawXml passthrough，不做结构化 XML mutation。 | 后续如需 mutation，先建立强 XML model。 |
 | TODO023-GAP-002 | preserve-mode / minimal writer 已实现 target.tmp + target.backup 事务写出；不是跨文件系统强原子替换。 | 如后续需要更强保证，再设计平台相关 atomic replace 策略。 |
-| TODO023-GAP-003 | CAD 插件 autoin 尚未验证。 | TODO-024。 |
+| TODO023-GAP-003 | CAD 插件 minimal sheet 导入验证。 | 已由 TODO-024 / GC-004 manual_autoin_passed_v2 关闭；round-trip 不等于完整 Detail 兼容。 |
 | TODO023-GAP-004 | malformed source 写出前拒绝已完成。 | 已按 TODO-023/024 外审整改。 |
 | TODO023-GAP-005 | 非 UTF-8 / GBK 旧 Detail XML 尚未用更多真实样本验证。 | 后续收集更多旧包时补编码观测。 |
 

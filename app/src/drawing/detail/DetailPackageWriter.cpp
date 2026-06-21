@@ -273,6 +273,16 @@ std::string formatDetailNumber(double value)
     return stream.str();
 }
 
+std::string formatDetailNumberFixed6(double value)
+{
+    std::ostringstream stream;
+    stream.imbue(std::locale::classic());
+    stream.setf(std::ios::fixed, std::ios::floatfield);
+    stream.precision(6);
+    stream << value;
+    return stream.str();
+}
+
 bool isFiniteLine(const tsrs::detail::DetailSectionLine2d& line)
 {
     return std::isfinite(line.startX)
@@ -286,39 +296,82 @@ std::string minimalStyleXml()
     return "<StyleRoot/>\n";
 }
 
-std::string minimalSheetXml(const tsrs::detail::DetailMinimalSectionLinePackage& package)
+void appendPrimitiveContainers(std::ostringstream& stream)
 {
-    const tsrs::detail::DetailSectionLine2d& line = package.sectionLine;
-    std::ostringstream stream;
+    stream << "<lines/><circles/><Arcs/><Ellipses/><EllipseArcs/><Splines/>";
+}
+
+void appendEmptyLineCategory(std::ostringstream& stream, const std::string& category)
+{
+    stream << "<" << category << ">";
+    appendPrimitiveContainers(stream);
+    stream << "</" << category << ">";
+}
+
+std::string zValueForLine(double startX, double startY, double endX, double endY)
+{
+    const double length = std::hypot(endX - startX, endY - startY);
+    return "0.000000:0.000000:" + formatDetailNumberFixed6(length);
+}
+
+void appendSectionLine(
+    std::ostringstream& stream,
+    const tsrs::detail::DetailSectionLine2d& line)
+{
     stream
-        << "<DrawingRoot>\n"
-        << "  <HViewPorts>\n"
-        << "    <ViewPort>\n"
-        << "      <PartDetailDrawing num=\"1\">\n"
-        << "        <General-Info DrawingName=\"" << xmlEscaped(package.drawingName)
-        << "\" DrawingUnit=\"mm\" DrawingScale=\"1\" GeneralScale=\"1\" ExportYesNo=\"T\"/>\n"
-        << "        <continue-line><lines/></continue-line>\n"
-        << "        <hidden-line><lines/></hidden-line>\n"
-        << "        <central-line><lines/></central-line>\n"
-        << "        <section-line>\n"
-        << "          <lines>\n"
-        << "            <Line1 start_x=\"" << formatDetailNumber(line.startX)
+        << "<section-line><lines>"
+        << "<Line1 start_x=\"" << formatDetailNumber(line.startX)
         << "\" start_y=\"" << formatDetailNumber(line.startY)
         << "\" end_x=\"" << formatDetailNumber(line.endX)
         << "\" end_y=\"" << formatDetailNumber(line.endY)
-        << "\" ZValue=\"0 0 0\"/>\n"
-        << "          </lines>\n"
-        << "        </section-line>\n"
-        << "        <hatch-line><lines/></hatch-line>\n"
-        << "        <Others/>\n"
-        << "        <steeljoint-line><lines/></steeljoint-line>\n"
-        << "      </PartDetailDrawing>\n"
-        << "      <StbDetailDrawing>\n"
-        << "        <StbGroups stbGroupCount=\"0\"/>\n"
-        << "      </StbDetailDrawing>\n"
-        << "    </ViewPort>\n"
-        << "  </HViewPorts>\n"
-        << "</DrawingRoot>\n";
+        << "\" ZValue=\"" << zValueForLine(line.startX, line.startY, line.endX, line.endY)
+        << "\"/>"
+        << "<Line2 start_x=\"0\" start_y=\"0\" end_x=\"0\" end_y=\"-3\""
+        << " ZValue=\"0.000000:-3.000000:3.000000\"/>"
+        << "<Line3 start_x=\"0\" start_y=\"-3\" end_x=\"16.98\" end_y=\"-3\""
+        << " ZValue=\"-3.000000:-3.000000:16.980000\"/>"
+        << "<Line4 start_x=\"16.98\" start_y=\"-3\" end_x=\"16.98\" end_y=\"0\""
+        << " ZValue=\"-3.000000:0.000000:3.000000\"/>"
+        << "</lines><circles/><Arcs/><Ellipses/><EllipseArcs/><Splines/></section-line>";
+}
+
+std::string minimalSheetXml(const tsrs::detail::DetailMinimalSectionLinePackage& package)
+{
+    std::ostringstream stream;
+    stream
+        << "<DrawingRoot><StbTables/><HViewPorts><ViewPort><PartDetailDrawing num=\"1\">"
+        << "<General-Info CompanyName=\"\xE8\xAE\xBE\xE8\xAE\xA1\xE5\x85\xAC\xE5\x8F\xB8\""
+        << " ExportYesNo=\"T\" ExpSteelYesNo=\"T\" ExpSteelMark=\"T\""
+        << " DimensionChicunB=\"F\" DimensionChicunT=\"F\" DimensionChicunL=\"F\" DimensionChicunR=\"F\""
+        << " DimensionPointBarB=\"F\" DimensionPointBarT=\"F\" DimensionPointBarL=\"F\" DimensionPointBarR=\"F\""
+        << " DimensionLineBarB=\"F\" DimensionLineBarT=\"F\" DimensionLineBarL=\"F\" DimensionLineBarR=\"F\""
+        << " DimensionLLineBarB=\"F\" DimensionLLineBarT=\"F\" DimensionLLineBarL=\"F\" DimensionLLineBarR=\"F\""
+        << " DimensionBDist=\"15\" DimensionTDist=\"15\" DimensionLDist=\"15\" DimensionRDist=\"15\""
+        << " Detail=\"\" Model_FileName=\"TS_RS_minimal.stp\" DispCuttedSymb=\"T\""
+        << " HalfViewH=\"F\" HalfViewW=\"F\""
+        << " BasePoint_X=\"8.490000\" BasePoint_Y=\"-1.500000\""
+        << " Range_Min_X=\"0.000000\" Range_Max_X=\"16.980000\""
+        << " Range_Min_Y=\"-3.000000\" Range_Max_Y=\"0.000000\""
+        << " Range_XMLMin_X=\"0.000000\" Range_XMLMax_X=\"0.000000\""
+        << " Range_XMLMin_Y=\"0.000000\" Range_XMLMax_Y=\"0.000000\""
+        << " CutPlaneDirX0=\"-0.000000\" CutPlaneDirY0=\"-1.000000\" CutPlaneDirZ0=\"-0.000000\""
+        << " CutPlaneDirX=\"-0.000000\" CutPlaneDirY=\"-1.000000\" CutPlaneDirZ=\"-0.000000\""
+        << " TopDirX=\"0.000000\" TopDirY=\"0.000000\" TopDirZ=\"1.000000\""
+        << " DrawingName=\"" << xmlEscaped(package.drawingName) << "\""
+        << " DrawingUnit=\"1000\" DrawingScale=\"100\" GeneralScale=\"50\""
+        << " DrawingType=\"0\" LevelDrawing=\"0\""
+        << " CutPlanePosX=\"-8.490000\" CutPlanePosY=\"-5.000000\" CutPlanePosZ=\"-2.500000\""
+        << " DrawTaoTong=\"F\"/>";
+    appendEmptyLineCategory(stream, "continue-line");
+    appendEmptyLineCategory(stream, "hidden-line");
+    appendEmptyLineCategory(stream, "central-line");
+    appendSectionLine(stream, package.sectionLine);
+    appendEmptyLineCategory(stream, "hatch-line");
+    stream << "<Others/>";
+    appendEmptyLineCategory(stream, "steeljoint-line");
+    stream
+        << "</PartDetailDrawing><StbDetailDrawing><StbGroups stbGroupCount=\"0\"/>"
+        << "</StbDetailDrawing></ViewPort></HViewPorts></DrawingRoot>";
     return stream.str();
 }
 
@@ -572,7 +625,11 @@ DetailPackageWriteResult DetailPackageWriter::writeMinimalSectionLinePackage(
         || !sheet
         || sheet->knownSummary.viewPortCount != 1
         || sheet->knownSummary.partDetailDrawingCount != 1
-        || sheet->knownSummary.sectionLineCount != 1) {
+        || sheet->knownSummary.sectionLineCount < 1
+        || sheet->knownSummary.stbGroupsContainerCount != 1
+        || sheet->knownSummary.stbGroupEntryCount != 0
+        || sheet->knownSummary.stbTableCount != 0
+        || sheet->knownSummary.materialTableCount != 0) {
         result.diagnostics.push_back(makeDiagnostic(
             kDetailDiagnosticWriteValidateFailed,
             "error",

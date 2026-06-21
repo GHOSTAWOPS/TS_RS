@@ -1,249 +1,198 @@
-# TODO-024 极简 Detail 包生成实现记录
+# TODO-024 Minimal Detail Package 实现记录
 
 ## 结论
 
-TODO-024 代码侧已实现极简 Detail 包生成：
+TODO-024 已从 blocked 更新为 done。
+
+done 的精确定义是：
 
 ```text
-DetailMinimalSectionLinePackage
-  -> DetailPackageWriter::writeMinimalSectionLinePackage
-  -> Detail.xml
-  -> Detail01.stl
-  -> DetailPackageReader 重新读取校验
+minimal sheet DetailNN.stl protocol reached manual autoin pass
 ```
 
-本节点只证明：
+也就是：
 
 ```text
-TS_RS 可以生成一个 XML well-formed 的极简 Detail 包。
-Detail.xml 固定写 <StyleRoot/>。
-Detail01.stl root = DrawingRoot。
-Detail01.stl 至少包含 HViewPorts / ViewPort / PartDetailDrawing / section-line。
-Detail01.stl 的 General-Info 写入 ExportYesNo="T"，用于对齐旧 CAD 插件 autoin 初筛。
-Reader 能重新读回，knownSummary 统计到 1 个 ViewPort、1 个 PartDetailDrawing、1 条 section-line。
+TS_RS 当前 P0 minimal sheet baseline = v2_empty_groups。
+v2_empty_groups 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
+GC-004 fixture 与 DetailPackageWriter::writeMinimalSectionLinePackage 输出字节一致。
 ```
 
-本节点尚未证明：
+TODO-024 done 不表示：
 
 ```text
-旧 AutoCAD 插件 autoin 能接受该极简包。
-Detail 包协议最低必填字段已完全闭合。
-DrawingModel / RebarModel 到 Detail 包的正式映射已完成。
-钢筋生成器、Viewer 选择系统或工程图标注已经接入 Detail。
+完整 Detail 协议完成。
+StbGroup 完成。
+StbTable 完成。
+MaterialTable 完成。
+DrawingModel 完成。
+RebarModel -> DetailExporter 完成。
+钢筋生成器 / Viewer 选择 / 工程图标注已经接入 Detail。
+```
+
+## 人工验证结论
+
+人工验证环境：
+
+```text
+AutoCAD 版本：AutoCAD 2020
+插件导入方式：使用图石当前可成功的 AutoCAD 插件导入按钮路径
+临时目录：M:\Device\C\Users\x\AppData\Local\Temp\msohtmplcllip
+验证方式：图石临时目录替换法
+截图：screenshot not attached
+```
+
+验证结果：
+
+```text
+旧 v1 minimal package:
+  failed
+  AutoCAD 插件 unhandled e06d7363h exception
+
+v2_empty_groups:
+  passed
+
+v3_one_pointstb:
+  passed
+  仅作为后续最小 StbGroup / pointStb 兼容样本
+  不作为 TODO-024 P0 baseline
+```
+
+三个实际测试：
+
+```text
+Test A:
+  只放 v2 Detail01.stl
+  独立单 sheet 导入成功
+
+Test B:
+  用 v2 替换真实包 Detail01.stl
+  导入成功
+
+Test C:
+  用 v2 替换真实包 Detail03.stl
+  导入成功
+  已确认 v2 图元确实被读取 / 显示
+```
+
+关键判断：
+
+```text
+因为 v2_empty_groups 不含钢筋组也能成功，
+TODO-024 P0 minimal package 以 v2_empty_groups 为基准。
+```
+
+## v2 P0 Baseline
+
+当前 `DetailPackageWriter::writeMinimalSectionLinePackage` 写出：
+
+```text
+Detail.xml
+  <StyleRoot/>
+
+Detail01.stl
+  DrawingRoot
+    StbTables
+    HViewPorts
+      ViewPort
+        PartDetailDrawing
+          General-Info
+          continue-line
+          hidden-line
+          central-line
+          section-line
+          hatch-line
+          steeljoint-line
+        StbDetailDrawing
+          StbGroups stbGroupCount="0"
+```
+
+P0 v2 hard requirements：
+
+```text
+DrawingUnit 使用数值形式：
+  DrawingUnit="1000"
+
+ZValue 使用真实图石样本兼容格式：
+  0.000000:0.000000:10.000000
+
+每个 line category 保留：
+  lines
+  circles
+  Arcs
+  Ellipses
+  EllipseArcs
+  Splines
+
+StbGroups 可以为空：
+  stbGroupCount="0"
+```
+
+P0 不生成：
+
+```text
+StbGroup
+StbGeo
+StbTable
+MaterialTable
 ```
 
 ## 实现内容
 
-更新：
+代码：
 
 ```text
-app/src/drawing/detail/DetailPackageWriter.h
 app/src/drawing/detail/DetailPackageWriter.cpp
+```
+
+测试：
+
+```text
 app/tests/drawing/detail_package_writer_tests.cpp
 ```
 
-新增公开 DTO：
+GC-004 fixture：
 
 ```text
-DetailSectionLine2d
-  startX
-  startY
-  endX
-  endY
-
-DetailMinimalSectionLinePackage
-  drawingName
-  sectionLine
-```
-
-新增 Writer 方法：
-
-```text
-DetailPackageWriter::writeMinimalSectionLinePackage(
-    const DetailMinimalSectionLinePackage& package,
-    const std::string& targetDirectory)
-```
-
-## P0 行为
-
-`writeMinimalSectionLinePackage` 当前执行：
-
-```text
-1. 检查 section-line 四个坐标均为 finite number。
-2. 创建输出目录。
-3. 写 Detail.xml = <StyleRoot/>。
-4. 写 Detail01.stl = DrawingRoot + HViewPorts + section-line。
-5. General-Info 写入 ExportYesNo="T"。
-6. 用 DetailPackageReader 重新读取输出目录。
-7. 校验文件数为 2。
-8. 校验 Detail01.stl 包含：
-   - viewPortCount = 1
-   - partDetailDrawingCount = 1
-   - sectionLineCount = 1
-9. 失败时返回 DETAIL_WRITE_FAILED 或 DETAIL_WRITE_VALIDATE_FAILED。
-```
-
-当前极简 `Detail01.stl` 包含：
-
-```text
-DrawingRoot
-  HViewPorts
-    ViewPort
-      PartDetailDrawing
-        General-Info / ExportYesNo="T"
-        continue-line
-        hidden-line
-        central-line
-        section-line / lines / Line1
-        hatch-line
-        Others
-        steeljoint-line
-      StbDetailDrawing / StbGroups
-```
-
-## 测试覆盖
-
-新增测试覆盖：
-
-```text
-1. minimal package 写出 2 个文件。
-2. Detail.xml 字节内容为 <StyleRoot/>\n。
-3. Detail01.stl 含 DrawingRoot / section-line / Line1。
-4. Detail01.stl 含 General-Info ExportYesNo="T"。
-5. drawingName 中 XML 特殊字符会转义。
-6. Reader 能重新读回生成包。
-7. knownSummary 能统计 1 个 viewport、1 个 part drawing、1 条 section-line。
-8. NaN / Inf 坐标被拒绝。
-9. 坐标非法时不写 Detail.xml / Detail01.stl。
-10. GC-004 固定验证包可被 Reader 读取。
-11. GC-004 固定验证包和 Writer 同参数输出字节一致。
-```
-
-## 2026-06-18 autoin 初筛修正
-
-用户执行 TODO-024 人工验证时，普通 autoin 不显示路径选择且将 `Detail01.stl`
-放入 `%TEMP%\msohtmplcllip` 后 AutoCAD 崩溃。
-
-随后用 IDA MCP 复核：
-
-```text
-FDrawing.arx / FDrawing.arx.i64
-session = fdrawing_arx
-
-autoin 主逻辑：
-  sub_180556580
-
-路径机制：
-  普通 autoin -> %TEMP%\msohtmplcllip
-  Ctrl + Shift + autoin -> SHBrowseForFolderW 目录选择器
-
-文件枚举：
-  selected_or_temp_dir\*.stl
-
-每个 .stl 初筛：
-  sub_180004A0C -> sub_180585B30
-  DrawingRoot / HViewPorts / ViewPort / PartDetailDrawing / General-Info
-  General-Info.ExportYesNo
-```
-
-`sub_180585B30` 对 `ExportYesNo` 的控制流：
-
-```text
-0x180585d26  "ExportYesNo"
-0x180585dc9  读取常量 "F"
-0x180585e3d  test edi, edi
-0x180585e3f  setnz r15b
-```
-
-结合真实 todo66 样本：
-
-```text
-Detail01.stl .. Detail04.stl 均为 ExportYesNo="T"
-```
-
-因此当前 GC-004 minimal writer 补入：
-
-```text
-ExportYesNo="T"
-```
-
-注意：
-
-```text
-这只关闭 autoin 初筛字段缺失问题。
-旧 CAD 插件是否接受极简 section-line 包，仍需人工 autoin 验证。
-```
-
-## RED / GREEN 记录
-
-RED：
-
-```text
-cmake --build build/default --target tsrs_detail_package_writer_tests --config Debug
-```
-
-失败原因符合预期：
-
-```text
-DetailMinimalSectionLinePackage 不是 tsrs::detail 的成员
-writeMinimalSectionLinePackage 不是 DetailPackageWriter 的成员
-```
-
-GREEN：
-
-```powershell
-cmd /c 'call "D:\Visual Studio 2026\Community\VC\Auxiliary\Build\vcvars64.bat" >nul && cmake --build build/default --target tsrs_detail_package_writer_tests --config Debug && ctest --test-dir build/default -C Debug -R tsrs_detail_package_writer --output-on-failure'
-```
-
-结果：
-
-```text
-2/2 passed
-```
-
-默认 CTest：
-
-```powershell
-cmd /c 'call "D:\Visual Studio 2026\Community\VC\Auxiliary\Build\vcvars64.bat" >nul && ctest --test-dir build/default -C Debug --output-on-failure'
-```
-
-结果：
-
-```text
-22/22 passed
-```
-
-## GC-004 固定人工验证包
-
-已新增：
-
-```text
-docs/validation/golden_cases/GC-004/README.md
 docs/validation/golden_cases/GC-004/minimal_detail_package/Detail.xml
 docs/validation/golden_cases/GC-004/minimal_detail_package/Detail01.stl
 ```
 
-用途：
+新增协议文档：
 
 ```text
-给旧 AutoCAD 插件 autoin 人工验证使用。
+docs/detail/03_MinimalDetailPackage_v2_protocol.md
 ```
 
-SHA256：
+## TDD 记录
+
+RED：
+
+```powershell
+cmd /c "call ""D:\Visual Studio 2026\Community\VC\Auxiliary\Build\vcvars64.bat"" >nul && cmake --build build/default --target tsrs_detail_package_writer_tests --config Debug && ctest --test-dir build/default -C Debug -R tsrs_detail_package_writer --output-on-failure"
+```
+
+失败符合预期：
+
+```text
+expected v2 minimal Detail01.stl to contain StbTables, v2 General-Info, StbGroups=0, escaped drawing name, and one section Line1
+```
+
+GREEN：
+
+```text
+tsrs_detail_package_writer_tests = passed
+tsrs_detail_package_writer_todo66_fixture_probe = passed
+```
+
+## 当前 GC-004 Hash
 
 ```text
 Detail.xml
   EA2FB44459C41800DF2251676DF6A72FB7B205FE7EB859925BA1AA2AFECEFFC0
 
 Detail01.stl
-  410F70E1EB77C0669933309DC13A4840649A98CB95CFD6F32BA03447725467DC
-```
-
-当前状态：
-
-```text
-autoin 尚未人工执行。
-不能宣称 Detail 兼容已闭合。
+  63ED30850AE2BFFA678DCFD8A2BD3DBA5F29C3DC30A9442763119EB5EA980E90
 ```
 
 ## 边界检查
@@ -251,40 +200,39 @@ autoin 尚未人工执行。
 本节点没有：
 
 ```text
+实现 DrawingModel。
+实现 RebarModel。
+实现 StbGroupWriter。
+实现 StbTable / MaterialTable。
 接 Viewer。
-接选择系统。
 接钢筋生成器。
-创建 DrawingModel。
-创建 RebarModel。
-调用 VisualTS / RebarSmart DLL / 3DE / CAA。
-把 Detail 字段写入 RebarModel。
+调用 AutoCAD / ARX / DBX。
+调用 RebarSmart DLL / VisualTS EXE/DLL / 3DE / CAA / CATIA / ACIS / HOOPS / Codejock。
+把真实复杂 Detail 包整包复制进 minimal writer。
+把 v3_one_pointstb 作为 P0 baseline。
 ```
 
-## 当前 GAP
+## 剩余缺口
 
 | ID | 缺口 | 处理 |
 | --- | --- | --- |
-| TODO024-GAP-001 | 旧 AutoCAD 插件 autoin 尚未人工验证。 | 需要用户在 AutoCAD 插件环境中验证 GC-004 包。 |
-| TODO024-GAP-002 | 极简包最低字段是否足够未知。 | autoin 失败后按错误补最小字段，不一次性复制真实复杂包。 |
-| TODO024-GAP-003 | `General-Info` 当前只写少数字段。 | 已按 autoin 初筛补 `ExportYesNo="T"`；其余字段仅服务 P0 极简验证，不能作为正式工程图字段映射。 |
-| TODO024-GAP-004 | `StbTables` 当前未写。 | 如果 CAD 插件要求该节点，下一轮按 autoin 结果补。 |
-| TODO024-GAP-005 | Detail.xml 是否被 autoin 后续样式路径读取未知。 | 当前只确认主入口先枚举 `*.stl`。 |
+| TODO024-GAP-001 | 完整 Detail 协议未完成。 | 后续按真实工程图字段逐步验证。 |
+| TODO024-GAP-002 | StbGroup / pointStb 只知道 v3 最小样本可导入。 | v3 只作为后续兼容样本，不进入 TODO-024 P0 baseline。 |
+| TODO024-GAP-003 | StbTable / MaterialTable 未验证。 | 后续单独做表格兼容 POC。 |
+| TODO024-GAP-004 | Detail.xml 在按钮导入路径中不是本次必要条件。 | 当前仍写 `<StyleRoot/>` 保持普通 Detail 包目录兼容。 |
+| TODO024-GAP-005 | ZValue 三段数值语义仍未完全解释。 | 当前只按真实图石兼容格式输出，不扩展语义结论。 |
 
 ## 下一步
 
-如果 GC-004 autoin 人工验证通过：
+TODO-024 已经不再阻塞后续 Viewer 选择前置链路。
+
+下一阶段仍应按当前 todo 顺序推进：
 
 ```text
-1. 回填 GC-004 README。
-2. 将 TODO-024 从 blocked 改为 done。
-3. 解除 TODO-021 和 generator->Detail 闭环对 TODO-024 的阻塞。
+TODO-020D  TopologyBindingRegistry P1 hardening
+TODO-020E  StepSession / ImportedModelStore 主链路
+TODO-020G  CommandService skeleton guardrails
+TODO-021   Viewer 选择系统
 ```
 
-如果 autoin 失败：
-
-```text
-1. 记录错误提示、截图、AutoCAD / 插件版本。
-2. 对比真实 todo66 Detail01.stl。
-3. 只补最小必填节点 / 属性。
-4. 重新生成 GC-004 包并再次验证。
-```
+不要直接跳到完整工程图、钢筋表或 generator -> Detail 闭环。
