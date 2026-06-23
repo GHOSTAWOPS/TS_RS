@@ -214,13 +214,13 @@ Viewer selection 不能绕过 binding id 直接把 TopoDS 传给 generator。
 | --- | --- | --- |
 | TODO020B-GAP-001 | P0 fingerprint 对真实复杂工程 STEP 的 collision 风险未充分验证。 | 后续用 `123.stp` 和结构 STEP 做 GC-002 扩展。 |
 | TODO020B-GAP-002 | face fingerprint 尚未包含 outer wire / inner wire / parent solid。 | P1 扩展，不阻塞 P0B。 |
-| TODO020B-GAP-003 | edge fingerprint endpoint 顺序可能受 orientation 影响。 | xhigh review 后按风险决定是否在本节点修正为无向端点 fingerprint。 |
+| TODO020B-GAP-003 | edge fingerprint endpoint 顺序可能受 orientation 影响。 | 已由 TODO-020D endpoint canonicalization 关闭。 |
 | TODO020B-GAP-004 | 当前 serialize / deserialize 是受控 JSON 风格字符串，不是完整工程文件 schema。 | TODO-026 `.tsrebar` save/open 时统一收口。 |
 | TODO020B-GAP-005 | 真实 Viewer selection -> binding id 尚未接通。 | TODO-021 处理；但 TODO-021 必须等 Detail 前置验证后再做。 |
 | TODO020B-GAP-006 | `StepImportCommandService` 仍通过 `StepDisplayModel` 间接暴露 `TopoDS_Shape` 到 application/presentation 边界。 | 这是 TODO-020 已记录的显示链路近似；不在 TODO-020B 扩散重构，后续 ShapeStore / display model 边界收口节点处理。 |
 | TODO020B-GAP-007 | registry 尚未接入 StepSession / ImportedModelStore 主链路。 | 新增后续 TODO，TODO-021 前必须避免 Viewer 选择绕过 registry。 |
-| TODO020B-GAP-008 | restore 当前以 stableId exact match 为主，未使用 geometryFingerprint / fallbackLocalIndex / fallbackBbox 做降级恢复。 | 新增后续 TODO；不作为 TODO-022 前置阻塞。 |
-| TODO020B-GAP-009 | edge endpoint fingerprint 尚未 canonicalize，方向翻转可能导致 stableId 漂移。 | 新增后续 TODO；真实工程 STEP 扩展验证前必须处理。 |
+| TODO020B-GAP-008 | restore 当前以 stableId exact match 为主，未使用 geometryFingerprint / fallbackLocalIndex / fallbackBbox 做降级恢复。 | 已由 TODO-020D restore fallback 语义关闭。 |
+| TODO020B-GAP-009 | edge endpoint fingerprint 尚未 canonicalize，方向翻转可能导致 stableId 漂移。 | 已由 TODO-020D endpoint canonicalization 关闭。 |
 
 ## xhigh 只读 review
 

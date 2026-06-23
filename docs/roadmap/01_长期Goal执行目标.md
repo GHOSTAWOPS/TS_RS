@@ -189,7 +189,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-020D TopologyBindingRegistry P1 hardening。
+当前 next：TODO-020E StepSession / ImportedModelStore 主链路。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -199,10 +199,10 @@ done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
 
 ```text
 按外部审查建议拆开阻塞边界：
-TODO-020D / TODO-020E / TODO-020G 可继续推进，
+TODO-020E / TODO-020G 可继续推进，
 不必等待 TODO-024 autoin。
 
-TODO-021 Viewer 选择系统仍必须等待 TODO-020D / TODO-020E / TODO-020G 完成。
+TODO-021 Viewer 选择系统仍必须等待 TODO-020E / TODO-020G 完成。
 generator->Detail 闭环仍需 RebarModel / CommandService / Detail 映射后续节点，
 不因 TODO-024 done 直接放行。
 ```
@@ -415,11 +415,11 @@ TODO-022 / TODO-023 / TODO-024 前置 Detail 读写和极简 autoin 验证，
 不要直接跳到 Viewer 选择系统。
 
 TODO-024 已闭合到 minimal sheet 级别：
-  - 可以继续 TODO-020D / TODO-020E / TODO-020G。
-  - TODO-021 仍必须等待 TODO-020D / TODO-020E / TODO-020G。
+  - 可以继续 TODO-020E / TODO-020G。
+  - TODO-021 仍必须等待 TODO-020E / TODO-020G。
   - generator->Detail 真实闭环仍等待 RebarModel / CommandService / Detail 映射后续节点。
 
-TODO-020D / TODO-020E / TODO-020G 必须在 TODO-021 前完成，
+TODO-020E / TODO-020G 必须在 TODO-021 前完成，
 避免 Viewer 选择绕过 stable binding 或 CommandService。
 
 TODO-020F 不阻塞 TODO-021。
@@ -453,7 +453,7 @@ P0 / 架构 / 协议 / 真实环境门禁节点推送后，必须打审查包并
 外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-020D。
+当前 next 为 TODO-020E。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。

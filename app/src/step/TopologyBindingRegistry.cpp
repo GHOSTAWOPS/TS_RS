@@ -17,6 +17,7 @@
 #include <cmath>
 #include <iomanip>
 #include <map>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -105,8 +106,11 @@ std::string edgeEndpointFingerprint(const TopoDS_Shape& shape)
 
     const gp_Pnt p1 = BRep_Tool::Pnt(first);
     const gp_Pnt p2 = BRep_Tool::Pnt(last);
-    return q(p1.X()) + "," + q(p1.Y()) + "," + q(p1.Z()) + "|"
-        + q(p2.X()) + "," + q(p2.Y()) + "," + q(p2.Z());
+    std::array<std::string, 2> endpoints{
+        q(p1.X()) + "," + q(p1.Y()) + "," + q(p1.Z()),
+        q(p2.X()) + "," + q(p2.Y()) + "," + q(p2.Z())};
+    std::sort(endpoints.begin(), endpoints.end());
+    return endpoints[0] + "|" + endpoints[1];
 }
 
 std::string vertexFingerprint(const TopoDS_Shape& shape)
@@ -250,6 +254,127 @@ tsrs::step::TopologyBbox extractBbox(const std::string& serialized)
     return bbox;
 }
 
+bool bboxNearlyEqual(
+    const tsrs::step::TopologyBbox& lhs,
+    const tsrs::step::TopologyBbox& rhs,
+    double tolerance = 1.0e-5)
+{
+    for (std::size_t i = 0; i < lhs.size(); ++i) {
+        if (std::fabs(lhs[i] - rhs[i]) > tolerance) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::vector<tsrs::step::TopologyBinding> filterByKind(
+    const std::vector<tsrs::step::TopologyBinding>& bindings,
+    const std::string& kind)
+{
+    std::vector<tsrs::step::TopologyBinding> filtered;
+    for (const tsrs::step::TopologyBinding& binding : bindings) {
+        if (binding.kind == kind) {
+            filtered.push_back(binding);
+        }
+    }
+    return filtered;
+}
+
+std::vector<tsrs::step::TopologyBinding> findStableIdCandidates(
+    const std::vector<tsrs::step::TopologyBinding>& bindings,
+    const std::string& stableId)
+{
+    std::vector<tsrs::step::TopologyBinding> candidates;
+    for (const tsrs::step::TopologyBinding& binding : bindings) {
+        if (binding.stableId == stableId) {
+            candidates.push_back(binding);
+        }
+    }
+    return candidates;
+}
+
+std::vector<tsrs::step::TopologyBinding> findFallbackCandidates(
+    const std::vector<tsrs::step::TopologyBinding>& bindings,
+    const tsrs::step::TopologyBindingReference& reference)
+{
+    std::vector<tsrs::step::TopologyBinding> candidates;
+    if (!reference.geometryFingerprint.empty()) {
+        for (const tsrs::step::TopologyBinding& binding : bindings) {
+            if (binding.kind != reference.kind) {
+                continue;
+            }
+            if (binding.geometryFingerprint == reference.geometryFingerprint) {
+                candidates.push_back(binding);
+            }
+        }
+    }
+
+    const bool hasLocalIndex = reference.fallbackLocalIndex >= 0;
+    if (candidates.size() > 1 && hasLocalIndex) {
+        std::vector<tsrs::step::TopologyBinding> narrowed;
+        for (const tsrs::step::TopologyBinding& binding : candidates) {
+            const bool localIndexMatches =
+                binding.localIndex == reference.fallbackLocalIndex;
+            const bool bboxMatches = bboxNearlyEqual(binding.bbox, reference.fallbackBbox);
+            if (localIndexMatches && bboxMatches) {
+                narrowed.push_back(binding);
+            }
+        }
+        if (!narrowed.empty()) {
+            candidates = std::move(narrowed);
+        }
+    }
+
+    if (!candidates.empty()) {
+        return candidates;
+    }
+    if (!hasLocalIndex) {
+        return {};
+    }
+
+    for (const tsrs::step::TopologyBinding& binding : bindings) {
+        if (binding.kind == reference.kind
+            && binding.localIndex == reference.fallbackLocalIndex
+            && bboxNearlyEqual(binding.bbox, reference.fallbackBbox)) {
+            candidates.push_back(binding);
+        }
+    }
+    return candidates;
+}
+
+std::optional<tsrs::step::TopologyBindingLookupResult> makeResultFromCandidates(
+    const std::vector<tsrs::step::TopologyBinding>& candidates,
+    const tsrs::step::TopologyBindingReference& reference,
+    bool usedFallback)
+{
+    if (candidates.empty()) {
+        return std::nullopt;
+    }
+
+    tsrs::step::TopologyBindingLookupResult result;
+    result.usedFallback = usedFallback;
+    result.candidateCount = static_cast<int>(candidates.size());
+    if (candidates.size() > 1) {
+        result.diagnosticCode = tsrs::step::kTopologyDiagnosticBindingAmbiguous;
+        result.diagnostic = usedFallback
+            ? "Topology binding fallback matched multiple candidates for role: " + reference.role
+            : "Topology binding matched multiple candidates: " + reference.stableId;
+        return result;
+    }
+    if (candidates.front().kind != reference.kind) {
+        result.diagnosticCode = tsrs::step::kTopologyDiagnosticKindMismatch;
+        result.diagnostic = "Topology binding kind mismatch. expected=" + reference.kind
+            + ", actual=" + candidates.front().kind;
+        return result;
+    }
+
+    result.ok = true;
+    result.diagnosticCode = tsrs::step::kTopologyDiagnosticOk;
+    result.diagnostic.clear();
+    result.binding = candidates.front();
+    return result;
+}
+
 } // namespace
 
 namespace tsrs::step {
@@ -302,34 +427,29 @@ TopologyBindingLookupResult TopologyBindingRegistry::restore(
     result.diagnosticCode = kTopologyDiagnosticBindingMissing;
     result.diagnostic = "No topology binding matched stable id: " + reference.stableId;
 
-    std::vector<TopologyBinding> candidates;
-    for (const TopologyBinding& binding : allBindings_) {
-        if (binding.stableId == reference.stableId) {
-            candidates.push_back(binding);
-        }
+    const std::vector<TopologyBinding> stableIdCandidates =
+        findStableIdCandidates(allBindings_, reference.stableId);
+    if (const std::optional<TopologyBindingLookupResult> exactResult =
+            makeResultFromCandidates(stableIdCandidates, reference, false)) {
+        return *exactResult;
     }
 
-    result.candidateCount = static_cast<int>(candidates.size());
-    if (candidates.empty()) {
-        return result;
-    }
-    if (candidates.size() > 1) {
-        result.diagnosticCode = kTopologyDiagnosticBindingAmbiguous;
-        result.diagnostic = "Topology binding matched multiple candidates: "
-            + reference.stableId;
-        return result;
-    }
-    if (candidates.front().kind != reference.kind) {
+    if (!reference.stableId.empty() && !stableIdCandidates.empty()
+        && filterByKind(stableIdCandidates, reference.kind).empty()) {
+        result.candidateCount = static_cast<int>(stableIdCandidates.size());
         result.diagnosticCode = kTopologyDiagnosticKindMismatch;
-        result.diagnostic = "Topology binding kind mismatch. expected=" + reference.kind
-            + ", actual=" + candidates.front().kind;
+        result.diagnostic = "Topology binding kind mismatch. expected=" + reference.kind;
         return result;
     }
 
-    result.ok = true;
-    result.diagnosticCode = kTopologyDiagnosticOk;
-    result.diagnostic.clear();
-    result.binding = candidates.front();
+    const std::vector<TopologyBinding> fallbackCandidates =
+        findFallbackCandidates(allBindings_, reference);
+    if (const std::optional<TopologyBindingLookupResult> fallbackResult =
+            makeResultFromCandidates(fallbackCandidates, reference, true)) {
+        return *fallbackResult;
+    }
+
+    result.candidateCount = 0;
     return result;
 }
 

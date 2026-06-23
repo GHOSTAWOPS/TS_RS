@@ -39,6 +39,7 @@ struct TopologyBindingReference {
 
 struct TopologyBindingLookupResult {
     bool ok{false};
+    bool usedFallback{false};
     std::string diagnosticCode{kTopologyDiagnosticBindingMissing};
     std::string diagnostic;
     int candidateCount{0};

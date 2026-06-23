@@ -2,7 +2,9 @@
 #include "step/StepImportService.h"
 #include "step/TopologyBindingRegistry.h"
 
+#include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepPrimAPI_MakeBox.hxx>
+#include <gp_Pnt.hxx>
 #include <STEPControl_Writer.hxx>
 #include <TopoDS_Shape.hxx>
 
@@ -12,6 +14,12 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace {
 
@@ -23,8 +31,14 @@ int fail(const std::string& message)
 
 std::filesystem::path writeBoxStepFixture()
 {
-    const std::filesystem::path path =
-        std::filesystem::temp_directory_path() / "tsrs_topology_binding_box_fixture.step";
+    const auto processId =
+#ifdef _WIN32
+        _getpid();
+#else
+        getpid();
+#endif
+    const std::filesystem::path path = std::filesystem::temp_directory_path()
+        / ("tsrs_topology_binding_box_fixture_" + std::to_string(processId) + ".step");
     std::filesystem::remove(path);
 
     const TopoDS_Shape box = BRepPrimAPI_MakeBox(1.0, 2.0, 3.0).Shape();
@@ -41,6 +55,18 @@ tsrs::step::TopologyBindingRegistry importRegistry(const std::filesystem::path& 
     if (!imported.ok) {
         throw std::runtime_error("STEP import failed: " + imported.diagnostic);
     }
+
+    const tsrs::step::ShapeStore store =
+        tsrs::step::ShapeStore::fromImportedStep(imported);
+    return tsrs::step::TopologyBindingRegistry::build(store);
+}
+
+tsrs::step::TopologyBindingRegistry registryFromShape(const TopoDS_Shape& shape)
+{
+    tsrs::step::StepImportResult imported;
+    imported.ok = true;
+    imported.sourcePath = "synthetic-shape";
+    imported.rootShape = shape;
 
     const tsrs::step::ShapeStore store =
         tsrs::step::ShapeStore::fromImportedStep(imported);
@@ -74,6 +100,22 @@ bool bboxNearlyEqual(
         }
     }
     return true;
+}
+
+tsrs::step::TopologyBinding makeSyntheticBinding(
+    int localIndex,
+    std::string stableId,
+    std::string geometryFingerprint,
+    tsrs::step::TopologyBbox bbox)
+{
+    tsrs::step::TopologyBinding binding;
+    binding.kind = tsrs::step::kTopologyKindEdge;
+    binding.localIndex = localIndex;
+    binding.stableId = std::move(stableId);
+    binding.geometryFingerprint = std::move(geometryFingerprint);
+    binding.bbox = bbox;
+    binding.measure = 10.0;
+    return binding;
 }
 
 int expectStableFingerprintsAcrossRepeatedImports()
@@ -118,6 +160,29 @@ int expectStableFingerprintsAcrossRepeatedImports()
     return 0;
 }
 
+int expectEdgeEndpointOrderIsCanonicalized()
+{
+    const TopoDS_Shape forwardEdge =
+        BRepBuilderAPI_MakeEdge(gp_Pnt(0.0, 0.0, 0.0), gp_Pnt(3.0, 2.0, 1.0)).Shape();
+    const TopoDS_Shape reversedEdge =
+        BRepBuilderAPI_MakeEdge(gp_Pnt(3.0, 2.0, 1.0), gp_Pnt(0.0, 0.0, 0.0)).Shape();
+
+    const tsrs::step::TopologyBindingRegistry forward = registryFromShape(forwardEdge);
+    const tsrs::step::TopologyBindingRegistry reversed = registryFromShape(reversedEdge);
+    if (forward.edges().size() != 1 || reversed.edges().size() != 1) {
+        return fail("expected one synthetic edge binding in each endpoint-order probe");
+    }
+
+    if (forward.edges().front().geometryFingerprint
+        != reversed.edges().front().geometryFingerprint) {
+        return fail("expected reversed edge endpoint order to keep geometry fingerprint stable");
+    }
+    if (forward.edges().front().stableId != reversed.edges().front().stableId) {
+        return fail("expected reversed edge endpoint order to keep stable id stable");
+    }
+    return 0;
+}
+
 int expectSerializeAndRestoreBinding()
 {
     const std::filesystem::path fixture = writeBoxStepFixture();
@@ -154,6 +219,77 @@ int expectSerializeAndRestoreBinding()
     return 0;
 }
 
+int expectRestoreFallsBackWhenStableIdDrifts()
+{
+    const tsrs::step::TopologyBbox bbox{0.0, 0.0, 0.0, 10.0, 0.0, 0.0};
+    const tsrs::step::TopologyBinding saved =
+        makeSyntheticBinding(4, "tsrs-topology-v1:edge:old", "edge|same", bbox);
+    const tsrs::step::TopologyBinding changed =
+        makeSyntheticBinding(4, "tsrs-topology-v1:edge:new", "edge|same", bbox);
+
+    const tsrs::step::TopologyBindingRegistry registry =
+        tsrs::step::TopologyBindingRegistry::fromBindings({changed});
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference("selectedGuideEdge", saved);
+    const tsrs::step::TopologyBindingLookupResult result = registry.restore(reference);
+
+    if (!result.ok || result.diagnosticCode != tsrs::step::kTopologyDiagnosticOk) {
+        return fail("expected fallback restore after stable id drift, got "
+                    + result.diagnosticCode + ": " + result.diagnostic);
+    }
+    if (!result.usedFallback) {
+        return fail("expected restore result to report fallback usage");
+    }
+    if (result.binding.stableId != changed.stableId) {
+        return fail("expected fallback restore to return the changed stable id binding");
+    }
+    return 0;
+}
+
+int expectRestoreFallsBackWhenGeometryFingerprintDriftsWithinSavedBbox()
+{
+    const tsrs::step::TopologyBbox savedBbox{0.0, 0.0, 0.0, 10.0, 0.0, 0.0};
+    const tsrs::step::TopologyBbox changedBbox{0.0, 0.0, 0.0, 10.0000005, 0.0, 0.0};
+    const tsrs::step::TopologyBinding saved =
+        makeSyntheticBinding(7, "tsrs-topology-v1:edge:old", "edge|old", savedBbox);
+    const tsrs::step::TopologyBinding changed =
+        makeSyntheticBinding(7, "tsrs-topology-v1:edge:new", "edge|new", changedBbox);
+
+    const tsrs::step::TopologyBindingRegistry registry =
+        tsrs::step::TopologyBindingRegistry::fromBindings({changed});
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference("selectedGuideEdge", saved);
+    const tsrs::step::TopologyBindingLookupResult result = registry.restore(reference);
+
+    if (!result.ok || !result.usedFallback) {
+        return fail("expected localIndex+bbox fallback restore for small geometry drift");
+    }
+    if (result.binding.stableId != changed.stableId) {
+        return fail("expected geometry-drift fallback restore to return changed binding");
+    }
+    return 0;
+}
+
+int expectRestoreFallbackAllowsZeroBbox()
+{
+    const tsrs::step::TopologyBbox zeroBbox{0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    const tsrs::step::TopologyBinding saved =
+        makeSyntheticBinding(0, "tsrs-topology-v1:edge:old", "edge|old", zeroBbox);
+    const tsrs::step::TopologyBinding changed =
+        makeSyntheticBinding(0, "tsrs-topology-v1:edge:new", "edge|new", zeroBbox);
+
+    const tsrs::step::TopologyBindingRegistry registry =
+        tsrs::step::TopologyBindingRegistry::fromBindings({changed});
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference("selectedGuideEdge", saved);
+    const tsrs::step::TopologyBindingLookupResult result = registry.restore(reference);
+
+    if (!result.ok || !result.usedFallback || result.binding.stableId != changed.stableId) {
+        return fail("expected fallback restore to allow zero bbox");
+    }
+    return 0;
+}
+
 int expectMissingAndKindMismatchDiagnostics()
 {
     const std::filesystem::path fixture = writeBoxStepFixture();
@@ -162,6 +298,9 @@ int expectMissingAndKindMismatchDiagnostics()
     tsrs::step::TopologyBindingReference missing =
         tsrs::step::makeBindingReference("selectedGuideEdge", registry.edges().front());
     missing.stableId = "tsrs-topology-v1:edge:missing";
+    missing.geometryFingerprint = "edge|missing";
+    missing.fallbackLocalIndex = -1;
+    missing.fallbackBbox = {999.0, 999.0, 999.0, 1000.0, 1000.0, 1000.0};
     const tsrs::step::TopologyBindingLookupResult missingResult = registry.restore(missing);
     if (missingResult.ok
         || missingResult.diagnosticCode != tsrs::step::kTopologyDiagnosticBindingMissing) {
@@ -178,6 +317,30 @@ int expectMissingAndKindMismatchDiagnostics()
         return fail("expected kind mismatch diagnostic");
     }
 
+    return 0;
+}
+
+int expectFallbackAmbiguousDiagnosticForDuplicateFallbackCandidates()
+{
+    const tsrs::step::TopologyBbox bbox{0.0, 0.0, 0.0, 10.0, 0.0, 0.0};
+    const tsrs::step::TopologyBinding saved =
+        makeSyntheticBinding(2, "tsrs-topology-v1:edge:old", "edge|same", bbox);
+    const tsrs::step::TopologyBinding candidateA =
+        makeSyntheticBinding(2, "tsrs-topology-v1:edge:new-a", "edge|same", bbox);
+    const tsrs::step::TopologyBinding candidateB =
+        makeSyntheticBinding(2, "tsrs-topology-v1:edge:new-b", "edge|same", bbox);
+
+    const tsrs::step::TopologyBindingRegistry registry =
+        tsrs::step::TopologyBindingRegistry::fromBindings({candidateA, candidateB});
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference("selectedGuideEdge", saved);
+    const tsrs::step::TopologyBindingLookupResult result = registry.restore(reference);
+
+    if (result.ok
+        || result.diagnosticCode != tsrs::step::kTopologyDiagnosticBindingAmbiguous
+        || result.candidateCount != 2) {
+        return fail("expected ambiguous diagnostic for duplicate fallback candidates");
+    }
     return 0;
 }
 
@@ -214,10 +377,25 @@ int main()
         if (const int code = expectStableFingerprintsAcrossRepeatedImports()) {
             return code;
         }
+        if (const int code = expectEdgeEndpointOrderIsCanonicalized()) {
+            return code;
+        }
         if (const int code = expectSerializeAndRestoreBinding()) {
             return code;
         }
+        if (const int code = expectRestoreFallsBackWhenStableIdDrifts()) {
+            return code;
+        }
+        if (const int code = expectRestoreFallsBackWhenGeometryFingerprintDriftsWithinSavedBbox()) {
+            return code;
+        }
+        if (const int code = expectRestoreFallbackAllowsZeroBbox()) {
+            return code;
+        }
         if (const int code = expectMissingAndKindMismatchDiagnostics()) {
+            return code;
+        }
+        if (const int code = expectFallbackAmbiguousDiagnosticForDuplicateFallbackCandidates()) {
             return code;
         }
         if (const int code = expectAmbiguousDiagnosticForDuplicateStableIds()) {
