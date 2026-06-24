@@ -1,5 +1,6 @@
 #pragma once
 
+#include "application/commands/RebarCreationPorts.h"
 #include "domain/rebar/RebarModel.h"
 
 #include <string>
@@ -12,9 +13,16 @@ inline constexpr const char* kRebarCreationCommandDiagnosticOk =
     "REBAR_CREATION_COMMAND_OK";
 inline constexpr const char* kRebarCreationCommandDiagnosticModelMissing =
     "REBAR_CREATION_MODEL_MISSING";
+inline constexpr const char* kRebarCreationCommandDiagnosticGeometryMissing =
+    "REBAR_CREATION_GEOMETRY_MISSING";
+inline constexpr const char* kRebarCreationCommandDiagnosticGeneratorMissing =
+    "REBAR_CREATION_GENERATOR_MISSING";
 
 struct RebarCreationPreviewFixDistanceRequest {
     std::string commandId;
+    std::string groupId;
+    RebarCreationFixDistanceInput input;
+    tsrs::geometry::IGeometryEngine* geometry{nullptr};
 };
 
 struct RebarCreationPreviewDraftRequest {
@@ -31,7 +39,8 @@ struct RebarCreationCommandResult {
 class RebarCreationCommandService final {
 public:
     explicit RebarCreationCommandService(
-        tsrs::domain::rebar::RebarModel* model = nullptr);
+        tsrs::domain::rebar::RebarModel* model = nullptr,
+        const IFixDistanceCenterlineGenerator* fixDistanceGenerator = nullptr);
 
     [[nodiscard]] RebarCreationCommandResult previewFixDistance(
         const RebarCreationPreviewFixDistanceRequest& request) const;
@@ -44,6 +53,7 @@ public:
 
 private:
     tsrs::domain::rebar::RebarModel* model_{nullptr};
+    const IFixDistanceCenterlineGenerator* fixDistanceGenerator_{nullptr};
 };
 
 } // namespace tsrs::application

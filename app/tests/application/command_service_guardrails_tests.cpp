@@ -90,18 +90,18 @@ int expectDetailCommandServiceIsGuardrailOnly()
     return 0;
 }
 
-int expectRebarCommandServiceIsGuardrailOnly()
+int expectRebarCommandServiceRequiresModelBeforeGeneration()
 {
     const tsrs::application::RebarCreationCommandService service;
     const tsrs::application::RebarCreationCommandResult result =
         service.previewFixDistance({});
 
     if (result.ok) {
-        return fail("rebar creation command skeleton must not generate rebar");
+        return fail("rebar creation command without model must not generate rebar");
     }
     if (result.diagnosticCode
-        != tsrs::application::kRebarCreationCommandDiagnosticNotImplemented) {
-        return fail("rebar command skeleton diagnostic mismatch: "
+        != tsrs::application::kRebarCreationCommandDiagnosticModelMissing) {
+        return fail("rebar command missing model diagnostic mismatch: "
                     + result.diagnosticCode);
     }
     return 0;
@@ -120,7 +120,7 @@ int main()
     if (const int code = expectDetailCommandServiceIsGuardrailOnly()) {
         return code;
     }
-    if (const int code = expectRebarCommandServiceIsGuardrailOnly()) {
+    if (const int code = expectRebarCommandServiceRequiresModelBeforeGeneration()) {
         return code;
     }
     return 0;

@@ -92,6 +92,8 @@ int main()
             {"src/application/commands"},
             {"rebarsmart/generators/FixDistanceGenerator",
              "rebarsmart/generators/FixNumberGenerator",
+             "application/rebarsmart",
+             "RebarSmartFixDistanceCenterlineGeneratorAdapter",
              "drawing/detail/DetailPackageWriter",
              "drawing/detail/DetailPackageReader"})) {
         return code;

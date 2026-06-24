@@ -168,6 +168,8 @@ add_library(tsrs_application STATIC
     src/application/commands/SelectionCommandService.cpp
     src/application/commands/StepImportCommandService.cpp
     src/application/import/ImportedModelStore.cpp
+    src/application/rebarsmart/RebarCreationCommandServiceFactory.cpp
+    src/application/rebarsmart/RebarSmartFixDistanceCenterlineGeneratorAdapter.cpp
 )
 
 target_include_directories(tsrs_application

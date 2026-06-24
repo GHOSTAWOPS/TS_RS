@@ -202,7 +202,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-028 RebarCreationCommandService P0。
+当前 next：TODO-029 Generator result -> RebarModel -> Detail minimal exporter。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -240,6 +240,11 @@ TODO-027 已完成：
 ScheduleModel 基础下料表 P0 已支持从 committed RebarModel 生成数量摘要。
 当前不伪造未知长度，lengthKnown=false。
 TODO-027 done 不表示完整重量 / Excel / Detail 表格已完成。
+TODO-028 已完成：
+RebarCreationCommandService P0 已支持 FixDistance centerline generator
+结果进入 RebarModel preview / commit transaction。
+当前通过 IFixDistanceCenterlineGenerator port 隔离具体 RebarSmart generator。
+TODO-028 done 不表示完整 UI / Detail / 真实钢筋实体闭环完成。
 ```
 
 目标：
@@ -450,6 +455,7 @@ TODO-025 RebarModel minimal transaction
 TODO-026 .tsrebar minimal save/open
 TODO-027 ScheduleModel 基础下料表 P0
 TODO-028 RebarCreationCommandService P0
+TODO-029 Generator result -> RebarModel -> Detail minimal exporter
 ```
 
 说明：
@@ -475,7 +481,7 @@ TODO-021 已通过 SelectionCommandService 输出 stable binding id。
 TODO-020F 不阻塞 TODO-021。
 它阻塞的是正式 RebarModel / Schedule / generator->Detail 链路，
 用于避免 STEP 源单位、TS_RS 内部单位、RebarSmart 参数单位和 Detail 输出单位混用。
-TODO-027 已完成后，当前 next 进入 TODO-028。
+TODO-028 已完成后，当前 next 进入 TODO-029。
 ```
 
 ## 用户可直接粘贴的 Goal 话术
@@ -505,7 +511,7 @@ Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-028。
+当前 next 为 TODO-029。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。
