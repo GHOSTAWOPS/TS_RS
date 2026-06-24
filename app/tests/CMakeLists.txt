@@ -258,6 +258,11 @@ set_tests_properties(tsrs_tsrebar_project_file_tests PROPERTIES
 
 if(TSRS_VCPKG_RUNTIME_BIN_DIR OR TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR)
     set(_tsrs_project_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+    add_custom_command(TARGET tsrs_tsrebar_project_file_tests POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${_tsrs_project_runtime_path}"
+            $<TARGET_FILE_DIR:tsrs_tsrebar_project_file_tests>
+        VERBATIM)
     set_tests_properties(tsrs_tsrebar_project_file_tests PROPERTIES
         ENVIRONMENT "PATH=${_tsrs_project_runtime_path};$ENV{PATH}"
         TIMEOUT 10)
