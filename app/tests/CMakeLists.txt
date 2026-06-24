@@ -97,6 +97,18 @@ target_link_libraries(tsrs_fix_number_generator_tests
 
 add_test(NAME tsrs_fix_number_generator_tests COMMAND $<TARGET_FILE:tsrs_fix_number_generator_tests>)
 
+add_executable(tsrs_rebar_model_transaction_tests
+    domain/rebar_model_transaction_tests.cpp
+)
+
+target_link_libraries(tsrs_rebar_model_transaction_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_rebar_model_transaction_tests
+    COMMAND $<TARGET_FILE:tsrs_rebar_model_transaction_tests>)
+
 add_executable(tsrs_geometry_engine_contract_tests
     geometry/geometry_engine_contract_tests.cpp
 )
@@ -216,6 +228,18 @@ target_link_libraries(tsrs_command_service_guardrails_tests
 
 add_test(NAME tsrs_command_service_guardrails_tests
     COMMAND $<TARGET_FILE:tsrs_command_service_guardrails_tests>)
+
+add_executable(tsrs_rebar_creation_command_service_tests
+    application/rebar_creation_command_service_tests.cpp
+)
+
+target_link_libraries(tsrs_rebar_creation_command_service_tests
+    PRIVATE
+        tsrs_application
+)
+
+add_test(NAME tsrs_rebar_creation_command_service_tests
+    COMMAND $<TARGET_FILE:tsrs_rebar_creation_command_service_tests>)
 
 add_executable(tsrs_command_service_boundary_scan_tests
     application/command_service_boundary_scan_tests.cpp

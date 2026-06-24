@@ -94,6 +94,7 @@ set(TSRS_OCCT_VIEWER_LIBS
 
 add_library(tsrs_app_core STATIC
     src/core/AppBuildInfo.cpp
+    src/domain/rebar/RebarModel.cpp
     src/rebarsmart/space_list/SpaceListParser.cpp
     src/rebarsmart/distribute/PriorityCountDistributor.cpp
     src/rebarsmart/distribute/PrioritySpaceDistributor.cpp
@@ -161,6 +162,7 @@ target_include_directories(tsrs_application
 
 target_link_libraries(tsrs_application
     PUBLIC
+        tsrs_app_core
         tsrs_step
 )
 

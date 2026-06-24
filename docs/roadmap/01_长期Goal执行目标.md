@@ -202,7 +202,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-025 RebarModel minimal transaction。
+当前 next：TODO-026 .tsrebar minimal save/open。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -216,7 +216,8 @@ StepSession / ImportedModelStore 已成为 STEP 导入会话主链路。
 MainWindow 导入 STEP 后会持有 currentStepSessionId。
 TODO-020G 已完成：
 SelectionCommandService 已提供 stable binding 出口。
-DetailPackageCommandService / RebarCreationCommandService 仍是 not implemented guardrail。
+DetailPackageCommandService 仍是 not implemented guardrail。
+RebarCreationCommandService 的具体生成命令仍是 not implemented guardrail。
 结构扫描测试已阻止 UI 直接调 generator / Detail writer。
 TODO-021 已完成：
 ViewerSelectionMode 已接入 OccViewerWidget。
@@ -226,6 +227,11 @@ TODO-020F 已完成：
 StepLengthUnitPolicy 已接入 StepImportResult / StepImportCommandResult / StepSession。
 TS_RS 内部长度单位固定为 m。
 本轮没有缩放 OCCT shape 坐标。
+TODO-025 已完成：
+RebarModel minimal transaction 已支持 preview / commit / cancel。
+RebarCreationCommandService 已提供 draft preview / commit / cancel 事务出口。
+previewFixDistance 仍是 not implemented guardrail。
+TODO-025 done 不表示生成器已经接入真实钢筋业务。
 ```
 
 目标：
@@ -433,6 +439,7 @@ TODO-020G CommandService skeleton guardrails
 TODO-021 Viewer 选择系统
 TODO-020F STEP import unit and scale policy
 TODO-025 RebarModel minimal transaction
+TODO-026 .tsrebar minimal save/open
 ```
 
 说明：
@@ -458,7 +465,7 @@ TODO-021 已通过 SelectionCommandService 输出 stable binding id。
 TODO-020F 不阻塞 TODO-021。
 它阻塞的是正式 RebarModel / Schedule / generator->Detail 链路，
 用于避免 STEP 源单位、TS_RS 内部单位、RebarSmart 参数单位和 Detail 输出单位混用。
-TODO-020F 已完成后，当前 next 进入 TODO-025。
+TODO-025 已完成后，当前 next 进入 TODO-026。
 ```
 
 ## 用户可直接粘贴的 Goal 话术
@@ -488,7 +495,7 @@ Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-025。
+当前 next 为 TODO-026。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。

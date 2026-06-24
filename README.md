@@ -37,8 +37,9 @@ TODO-024 代码侧已完成：极简 Detail 包和 GC-004 固定验证输入。
 
 P0A 最小真实闭环尚未放行。
 Detail 兼容尚未放行，TODO-024 只证明 minimal sheet format compatibility。
-当前 next：TODO-025 RebarModel minimal transaction。
-TODO-025 必须保持 domain/rebar 不依赖 OCCT / AIS 细节。
+当前 next：TODO-026 .tsrebar minimal save/open。
+TODO-025 已完成 RebarModel minimal transaction。
+domain/rebar 必须继续保持不依赖 OCCT / AIS 细节。
 ```
 
 关键入口：
