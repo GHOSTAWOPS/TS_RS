@@ -16,6 +16,8 @@ inline constexpr const char* kTopologyDiagnosticOk = "TOPOLOGY_BINDING_OK";
 inline constexpr const char* kTopologyDiagnosticBindingMissing = "BINDING_MISSING";
 inline constexpr const char* kTopologyDiagnosticBindingAmbiguous = "BINDING_AMBIGUOUS";
 inline constexpr const char* kTopologyDiagnosticKindMismatch = "BINDING_KIND_MISMATCH";
+inline constexpr const char* kTopologyDiagnosticBindingLowConfidence =
+    "BINDING_LOW_CONFIDENCE";
 
 using TopologyBbox = std::array<double, 6>;
 

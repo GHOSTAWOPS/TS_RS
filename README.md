@@ -25,7 +25,8 @@ RebarSmart 作为钢筋生成逻辑的证据源。
 ```text
 TODO-020 已完成：真实 STEP/STP 导入与水泥灰显示。
 TODO-020B 已完成：ShapeStore + TopologyBindingRegistry P0 library。
-TODO-020D 已完成：TopologyBindingRegistry endpoint canonicalization + restore fallback。
+TODO-020D 已完成：TopologyBindingRegistry endpoint canonicalization +
+geometryFingerprint fallback + low-confidence guard。
 TODO-022 已完成：DetailPackageReader P0。
 TODO-023 已完成：DetailPackageWriter preserve-mode round-trip。
 TODO-024 代码侧已完成：极简 Detail 包和 GC-004 固定验证输入。

@@ -91,9 +91,10 @@ RebarSmart 作为钢筋生成逻辑证据源。
 3. commit 前必须执行 xhigh 只读 review。
 4. Critical / Important 必须修复，或写明技术反驳理由。
 5. 子代理完成后必须关闭。
-6. commit / annotated tag / push 后，按外部高级 AI 审查规则打包并执行 web-gpt-pro-review。
-7. 外部审查若出现 Critical / Important，必须先技术核验，再修复或写明反驳理由。
-8. 外部审查修复完成后，追加 follow-up commit / tag / push，并在必要时复审。
+6. commit / annotated tag / push 后，默认不执行 Web GPT Pro 外部审查。
+7. 只有用户明确恢复外部高级 AI 审查时，才按外部高级 AI 审查规则打包并执行 web-gpt-pro-review。
+8. 已取得的外部审查若出现 Critical / Important，必须先技术核验，再修复或写明反驳理由。
+9. 外部审查修复完成后，追加 follow-up commit / tag / push，并在必要时复审。
 ```
 
 如果当前 next 是只读审计或文档节点：
@@ -103,13 +104,25 @@ RebarSmart 作为钢筋生成逻辑证据源。
 2. 需要时可使用 xhigh 只读 review。
 3. 输出结论必须落到 docs/。
 4. todo.csv 必须推进到下一个明确节点。
-5. 若节点影响路线、架构或关键门禁，也要打包交给 web-gpt-pro-review 外部高级 AI 审查。
+5. 若节点影响路线、架构或关键门禁，先完成本地文档和 xhigh review；Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 ```
 
 ## 外部高级 AI 审查规则
 
-TS_RS 的 P0 / 架构 / 协议 / 真实环境门禁节点，除本地测试和 xhigh 只读 review 外，
-还必须在节点 checkpoint 后执行 Web GPT Pro 外部审查。
+当前执行口径：
+
+```text
+Web GPT Pro 外部审查暂停。
+原因：用户明确要求“后续先不用 web gpt pro 审查了”。
+暂停期间不要主动打包、上传或监听外部审查。
+当前门禁改为：本地测试 + 默认 CTest + xhigh 只读 review + 文档记录 + commit/tag/push。
+只有用户明确说恢复外部审查时，才重新启用下方规则。
+```
+
+历史规则保留如下，作为恢复外部审查时的执行合同。
+
+TS_RS 的 P0 / 架构 / 协议 / 真实环境门禁节点，在外部审查恢复后，除本地测试和 xhigh 只读 review 外，
+应在节点 checkpoint 后执行 Web GPT Pro 外部审查。
 
 触发条件：
 
@@ -193,6 +206,11 @@ web-gpt-pro-review 固定要求：
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
+TODO-020D 已完成外部审查整改：
+TopologyBindingRegistry 当前是 P1 partial hardening，不是 production-ready graph binding。
+stableId 漂移时只允许 geometryFingerprint 唯一候选自动 fallback。
+localIndex / bbox 只作为 BINDING_LOW_CONFIDENCE 诊断线索，不能静默自动恢复。
+已补 realistic compound / fused L-shape STEP stress tests。
 ```
 
 目标：
@@ -395,7 +413,7 @@ TODO-020C 外部评审条件收口
 TODO-022 DetailPackageReader P0
 TODO-023 DetailPackageWriter round-trip
 TODO-024 极简 Detail 包生成 + autoin 验证
-TODO-020D TopologyBindingRegistry P1 hardening
+TODO-020D TopologyBindingRegistry P1 partial hardening
 TODO-020E StepSession / ImportedModelStore 主链路
 TODO-020G CommandService skeleton guardrails
 TODO-021 Viewer 选择系统
@@ -449,8 +467,9 @@ todo.csv
 xhigh 只能 review，不能修改；主流程 agent 负责修改。
 子代理完成后必须关闭。
 完成后更新文档、todo.csv，运行验证，commit，打 annotated tag，push。
-P0 / 架构 / 协议 / 真实环境门禁节点推送后，必须打审查包并用 web-gpt-pro-review 交给外部高级 AI 审查。
-外部审查 Critical / Important 必须修复或写明技术反驳理由。
+Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
+暂停期间以本地测试、默认 CTest、xhigh 只读 review、文档记录、commit/tag/push 作为节点门禁。
+已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
 当前 next 为 TODO-020E。

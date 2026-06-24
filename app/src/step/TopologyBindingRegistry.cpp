@@ -293,7 +293,7 @@ std::vector<tsrs::step::TopologyBinding> findStableIdCandidates(
     return candidates;
 }
 
-std::vector<tsrs::step::TopologyBinding> findFallbackCandidates(
+std::vector<tsrs::step::TopologyBinding> findGeometryFingerprintCandidates(
     const std::vector<tsrs::step::TopologyBinding>& bindings,
     const tsrs::step::TopologyBindingReference& reference)
 {
@@ -308,30 +308,19 @@ std::vector<tsrs::step::TopologyBinding> findFallbackCandidates(
             }
         }
     }
+    return candidates;
+}
 
+std::vector<tsrs::step::TopologyBinding> findLocalIndexBboxCandidates(
+    const std::vector<tsrs::step::TopologyBinding>& bindings,
+    const tsrs::step::TopologyBindingReference& reference)
+{
     const bool hasLocalIndex = reference.fallbackLocalIndex >= 0;
-    if (candidates.size() > 1 && hasLocalIndex) {
-        std::vector<tsrs::step::TopologyBinding> narrowed;
-        for (const tsrs::step::TopologyBinding& binding : candidates) {
-            const bool localIndexMatches =
-                binding.localIndex == reference.fallbackLocalIndex;
-            const bool bboxMatches = bboxNearlyEqual(binding.bbox, reference.fallbackBbox);
-            if (localIndexMatches && bboxMatches) {
-                narrowed.push_back(binding);
-            }
-        }
-        if (!narrowed.empty()) {
-            candidates = std::move(narrowed);
-        }
-    }
-
-    if (!candidates.empty()) {
-        return candidates;
-    }
     if (!hasLocalIndex) {
         return {};
     }
 
+    std::vector<tsrs::step::TopologyBinding> candidates;
     for (const tsrs::step::TopologyBinding& binding : bindings) {
         if (binding.kind == reference.kind
             && binding.localIndex == reference.fallbackLocalIndex
@@ -442,10 +431,26 @@ TopologyBindingLookupResult TopologyBindingRegistry::restore(
         return result;
     }
 
-    const std::vector<TopologyBinding> fallbackCandidates =
-        findFallbackCandidates(allBindings_, reference);
+    const std::vector<TopologyBinding> geometryFingerprintCandidates =
+        findGeometryFingerprintCandidates(allBindings_, reference);
     if (const std::optional<TopologyBindingLookupResult> fallbackResult =
-            makeResultFromCandidates(fallbackCandidates, reference, true)) {
+            makeResultFromCandidates(geometryFingerprintCandidates, reference, true)) {
+        return *fallbackResult;
+    }
+
+    const std::vector<TopologyBinding> localIndexBboxCandidates =
+        findLocalIndexBboxCandidates(allBindings_, reference);
+    if (const std::optional<TopologyBindingLookupResult> fallbackResult =
+            makeResultFromCandidates(localIndexBboxCandidates, reference, true)) {
+        if (fallbackResult->ok) {
+            TopologyBindingLookupResult lowConfidence = *fallbackResult;
+            lowConfidence.ok = false;
+            lowConfidence.diagnosticCode = kTopologyDiagnosticBindingLowConfidence;
+            lowConfidence.diagnostic =
+                "Topology binding localIndex+bbox fallback is low confidence for role: "
+                + reference.role;
+            return lowConfidence;
+        }
         return *fallbackResult;
     }
 
