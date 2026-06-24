@@ -202,7 +202,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-020E StepSession / ImportedModelStore 主链路。
+当前 next：TODO-020G CommandService skeleton guardrails。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -211,6 +211,9 @@ TopologyBindingRegistry 当前是 P1 partial hardening，不是 production-ready
 stableId 漂移时只允许 geometryFingerprint 唯一候选自动 fallback。
 localIndex / bbox 只作为 BINDING_LOW_CONFIDENCE 诊断线索，不能静默自动恢复。
 已补 realistic compound / fused L-shape STEP stress tests。
+TODO-020E 已完成：
+StepSession / ImportedModelStore 已成为 STEP 导入会话主链路。
+MainWindow 导入 STEP 后会持有 currentStepSessionId。
 ```
 
 目标：
@@ -472,7 +475,7 @@ Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-020E。
+当前 next 为 TODO-020G。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。

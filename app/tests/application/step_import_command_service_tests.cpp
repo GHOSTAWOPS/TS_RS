@@ -1,4 +1,5 @@
 #include "application/commands/StepImportCommandService.h"
+#include "application/import/ImportedModelStore.h"
 
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <STEPControl_Writer.hxx>
@@ -70,6 +71,62 @@ int expectSuccessfulDisplayModel()
     if (result.displayModel.sourcePath != fixture.string()) {
         return fail("successful STEP command must preserve source path");
     }
+    if (!result.sessionId.empty()) {
+        return fail("successful STEP command without store must not expose a session id");
+    }
+    return 0;
+}
+
+int expectImportCreatesStoredSessionWithTopologyBindings()
+{
+    const std::filesystem::path fixture = writeBoxStepFixture();
+    tsrs::application::ImportedModelStore store;
+    const tsrs::application::StepImportCommandService service(&store);
+    const tsrs::application::StepImportCommandResult result =
+        service.importStep({fixture.string()});
+
+    if (!result.ok) {
+        return fail("expected STEP import command ok, got " + result.diagnostic);
+    }
+    if (result.sessionId.empty()) {
+        return fail("successful STEP command must expose a session id");
+    }
+    if (store.size() != 1) {
+        return fail("imported model store must contain one session");
+    }
+
+    const tsrs::application::StepSession* session =
+        store.findSession(result.sessionId);
+    if (session == nullptr) {
+        return fail("imported model store must find the imported session");
+    }
+    if (session->sourcePath != fixture.string()) {
+        return fail("stored session must preserve source path");
+    }
+    if (session->displayModel.sourcePath != result.displayModel.sourcePath) {
+        return fail("stored session must preserve display model");
+    }
+    if (session->shapeStore.edges().empty()) {
+        return fail("stored session must expose ShapeStore edges");
+    }
+    if (!session->topologyBindings.ok()) {
+        return fail("stored topology registry must be valid: "
+                    + session->topologyBindings.diagnostic());
+    }
+    if (session->topologyBindings.edges().empty()) {
+        return fail("stored topology registry must expose edge bindings");
+    }
+
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference(
+            "selectedGuideEdge",
+            session->topologyBindings.edges().front());
+    const tsrs::step::TopologyBindingLookupResult restored =
+        session->topologyBindings.restore(reference);
+    if (!restored.ok) {
+        return fail("stored topology registry must restore its own binding: "
+                    + restored.diagnosticCode + " " + restored.diagnostic);
+    }
     return 0;
 }
 
@@ -81,6 +138,9 @@ int main()
         return code;
     }
     if (const int code = expectSuccessfulDisplayModel()) {
+        return code;
+    }
+    if (const int code = expectImportCreatesStoredSessionWithTopologyBindings()) {
         return code;
     }
     return 0;

@@ -7,6 +7,11 @@
 #include <QTextEdit>
 #include <QTreeView>
 
+#include <BRepPrimAPI_MakeBox.hxx>
+#include <STEPControl_Writer.hxx>
+#include <TopoDS_Shape.hxx>
+
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -21,6 +26,19 @@ int fail(const std::string& message)
 int expect(bool condition, const std::string& message)
 {
     return condition ? 0 : fail(message);
+}
+
+std::filesystem::path writeBoxStepFixture()
+{
+    const std::filesystem::path path =
+        std::filesystem::temp_directory_path() / "tsrs_main_window_session_box.step";
+    std::filesystem::remove(path);
+
+    const TopoDS_Shape box = BRepPrimAPI_MakeBox(1.0, 1.0, 1.0).Shape();
+    STEPControl_Writer writer;
+    writer.Transfer(box, STEPControl_AsIs);
+    writer.Write(path.string().c_str());
+    return path;
 }
 
 } // namespace
@@ -112,6 +130,23 @@ int main(int argc, char** argv)
     }
 
     if (const int code = expect(window.isVisible(), "MainWindow must be shown for smoke coverage")) {
+        return code;
+    }
+
+    const std::filesystem::path fixture = writeBoxStepFixture();
+    if (const int code =
+            expect(window.importStepFileForSmoke(QString::fromStdString(fixture.string())),
+                   "MainWindow smoke import must succeed through command service")) {
+        return code;
+    }
+    if (const int code =
+            expect(window.importedModelCount() == 1,
+                   "MainWindow must store imported STEP as a session")) {
+        return code;
+    }
+    if (const int code =
+            expect(!window.currentStepSessionId().isEmpty(),
+                   "MainWindow must expose current STEP session id after import")) {
         return code;
     }
 

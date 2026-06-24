@@ -1,6 +1,7 @@
 #include "ui/mainwindow/MainWindow.h"
 
 #include "application/commands/StepImportCommandService.h"
+#include "application/import/ImportedModelStore.h"
 #include "presentation/occ/OccViewerWidget.h"
 
 #include <QDockWidget>
@@ -19,8 +20,21 @@ namespace tsrs::ui {
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
+    , importedModelStore_(std::make_unique<application::ImportedModelStore>())
 {
     buildUi();
+}
+
+MainWindow::~MainWindow() = default;
+
+QString MainWindow::currentStepSessionId() const
+{
+    return currentStepSessionId_;
+}
+
+std::size_t MainWindow::importedModelCount() const
+{
+    return importedModelStore_ == nullptr ? 0 : importedModelStore_->size();
 }
 
 void MainWindow::buildUi()
@@ -57,7 +71,7 @@ bool MainWindow::importStepFileForSmoke(const QString& stepPath)
 
 bool MainWindow::importStepFileInternal(const QString& stepPath, bool displayInViewer)
 {
-    const tsrs::application::StepImportCommandService service;
+    const tsrs::application::StepImportCommandService service(importedModelStore_.get());
     const tsrs::application::StepImportCommandResult imported =
         service.importStep({stepPath.toStdString()});
     if (!imported.ok) {
@@ -70,6 +84,7 @@ bool MainWindow::importStepFileInternal(const QString& stepPath, bool displayInV
         }
         return false;
     }
+    currentStepSessionId_ = QString::fromStdString(imported.sessionId);
 
     if (displayInViewer && (viewer_ == nullptr || !viewer_->displayStepModel(imported.displayModel))) {
         qWarning().noquote() << QStringLiteral("STEP 显示失败：%1")
@@ -87,6 +102,7 @@ bool MainWindow::importStepFileInternal(const QString& stepPath, bool displayInV
                                 .arg(imported.displayModel.faceCount)
                                 .arg(imported.displayModel.edgeCount)
                                 .arg(imported.displayModel.vertexCount));
+        messageLog_->append(QStringLiteral("导入会话：%1").arg(currentStepSessionId_));
         if (!displayInViewer) {
             messageLog_->append(QStringLiteral("Smoke 模式：已跳过 Viewer 显示。"));
         }
