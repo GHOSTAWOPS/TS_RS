@@ -94,6 +94,7 @@ set(TSRS_OCCT_VIEWER_LIBS
 
 add_library(tsrs_app_core STATIC
     src/core/AppBuildInfo.cpp
+    src/drawing/schedule/ScheduleModel.cpp
     src/domain/rebar/RebarModel.cpp
     src/rebarsmart/space_list/SpaceListParser.cpp
     src/rebarsmart/distribute/PriorityCountDistributor.cpp

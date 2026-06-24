@@ -329,6 +329,18 @@ add_test(NAME tsrs_detail_package_writer_todo66_fixture_probe
 set_tests_properties(tsrs_detail_package_writer_todo66_fixture_probe PROPERTIES
     SKIP_RETURN_CODE 77)
 
+add_executable(tsrs_schedule_model_tests
+    drawing/schedule_model_tests.cpp
+)
+
+target_link_libraries(tsrs_schedule_model_tests
+    PRIVATE
+        tsrs_app_core
+)
+
+add_test(NAME tsrs_schedule_model_tests
+    COMMAND $<TARGET_FILE:tsrs_schedule_model_tests>)
+
 if(TSRS_VCPKG_RUNTIME_BIN_DIR OR TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR)
     set(_tsrs_detail_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
     set_tests_properties(tsrs_detail_package_reader_tests PROPERTIES
