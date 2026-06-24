@@ -112,6 +112,21 @@ target_include_directories(tsrs_app_core
 
 target_compile_features(tsrs_app_core PUBLIC cxx_std_17)
 
+add_library(tsrs_project_tsrebar STATIC
+    src/project/tsrebar/TsrebarProjectFile.cpp
+)
+
+target_include_directories(tsrs_project_tsrebar
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_link_libraries(tsrs_project_tsrebar
+    PUBLIC
+        Qt6::Core
+        tsrs_app_core
+)
+
 add_library(tsrs_geometry_occt STATIC
     src/geometry/occt/OcctGeometryEngine.cpp
 )

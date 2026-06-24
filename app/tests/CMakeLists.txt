@@ -241,6 +241,28 @@ target_link_libraries(tsrs_rebar_creation_command_service_tests
 add_test(NAME tsrs_rebar_creation_command_service_tests
     COMMAND $<TARGET_FILE:tsrs_rebar_creation_command_service_tests>)
 
+add_executable(tsrs_tsrebar_project_file_tests
+    project/tsrebar_project_file_tests.cpp
+)
+
+target_link_libraries(tsrs_tsrebar_project_file_tests
+    PRIVATE
+        tsrs_project_tsrebar
+)
+
+add_test(NAME tsrs_tsrebar_project_file_tests
+    COMMAND $<TARGET_FILE:tsrs_tsrebar_project_file_tests>)
+
+set_tests_properties(tsrs_tsrebar_project_file_tests PROPERTIES
+    TIMEOUT 10)
+
+if(TSRS_VCPKG_RUNTIME_BIN_DIR OR TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR)
+    set(_tsrs_project_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+    set_tests_properties(tsrs_tsrebar_project_file_tests PROPERTIES
+        ENVIRONMENT "PATH=${_tsrs_project_runtime_path};$ENV{PATH}"
+        TIMEOUT 10)
+endif()
+
 add_executable(tsrs_command_service_boundary_scan_tests
     application/command_service_boundary_scan_tests.cpp
 )
