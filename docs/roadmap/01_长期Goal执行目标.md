@@ -202,7 +202,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-021 Viewer 选择系统。
+当前 next：TODO-020F STEP import unit and scale policy。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -218,6 +218,10 @@ TODO-020G 已完成：
 SelectionCommandService 已提供 stable binding 出口。
 DetailPackageCommandService / RebarCreationCommandService 仍是 not implemented guardrail。
 结构扫描测试已阻止 UI 直接调 generator / Detail writer。
+TODO-021 已完成：
+ViewerSelectionMode 已接入 OccViewerWidget。
+MainWindow smoke selection 已通过 SelectionCommandService 输出 stable binding id。
+真实鼠标 picking 和视觉高亮截图仍作为后续风险。
 ```
 
 目标：
@@ -226,9 +230,7 @@ DetailPackageCommandService / RebarCreationCommandService 仍是 not implemented
 按外部审查建议拆开阻塞边界：
 TODO-020E / TODO-020G 已完成。
 
-TODO-021 Viewer 选择系统可以进入。
-但 TODO-021 必须输出 stable binding id，
-不能把裸 AIS / TopoDS 交给 generator。
+TODO-021 Viewer 选择系统已完成 P0 stable binding 出口。
 generator->Detail 闭环仍需 RebarModel / CommandService / Detail 映射后续节点，
 不因 TODO-024 done 直接放行。
 ```
@@ -442,12 +444,11 @@ TODO-022 / TODO-023 / TODO-024 前置 Detail 读写和极简 autoin 验证，
 
 TODO-024 已闭合到 minimal sheet 级别：
   - TODO-020E / TODO-020G 已完成。
-  - TODO-021 可以进入 Viewer 选择系统。
+  - TODO-021 已完成 Viewer selection P0 stable binding 出口。
   - generator->Detail 真实闭环仍等待 RebarModel / CommandService / Detail 映射后续节点。
 
 TODO-020E / TODO-020G 已在 TODO-021 前完成。
-TODO-021 必须通过 SelectionCommandService 输出 stable binding id，
-不能绕过 CommandService。
+TODO-021 已通过 SelectionCommandService 输出 stable binding id。
 
 TODO-020F 不阻塞 TODO-021。
 它阻塞的是正式 RebarModel / Schedule / generator->Detail 链路，
@@ -481,7 +482,7 @@ Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-021。
+当前 next 为 TODO-020F。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。

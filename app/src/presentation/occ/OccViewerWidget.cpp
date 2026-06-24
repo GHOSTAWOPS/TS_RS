@@ -7,6 +7,7 @@
 #include <OpenGl_GraphicDriver.hxx>
 #include <Quantity_Color.hxx>
 #include <Standard_Failure.hxx>
+#include <TopAbs_ShapeEnum.hxx>
 
 #include <QLabel>
 #include <QPaintEvent>
@@ -17,6 +18,49 @@
 #include <cmath>
 
 namespace tsrs::presentation {
+
+namespace {
+
+TopAbs_ShapeEnum toOccSelectionShape(ViewerSelectionMode mode)
+{
+    switch (mode) {
+    case ViewerSelectionMode::Vertex:
+        return TopAbs_VERTEX;
+    case ViewerSelectionMode::Edge:
+        return TopAbs_EDGE;
+    case ViewerSelectionMode::Face:
+        return TopAbs_FACE;
+    case ViewerSelectionMode::Shape:
+        return TopAbs_SHAPE;
+    case ViewerSelectionMode::None:
+        return TopAbs_COMPOUND;
+    }
+    return TopAbs_COMPOUND;
+}
+
+} // namespace
+
+ViewerSelectionColors defaultViewerSelectionColors()
+{
+    return {"selection-red", "highlight-magenta"};
+}
+
+QString viewerSelectionModeStatusText(ViewerSelectionMode mode)
+{
+    switch (mode) {
+    case ViewerSelectionMode::Vertex:
+        return QStringLiteral("选择模式：点");
+    case ViewerSelectionMode::Edge:
+        return QStringLiteral("选择模式：边");
+    case ViewerSelectionMode::Face:
+        return QStringLiteral("选择模式：面");
+    case ViewerSelectionMode::Shape:
+        return QStringLiteral("选择模式：实体");
+    case ViewerSelectionMode::None:
+        return QStringLiteral("选择模式：无");
+    }
+    return QStringLiteral("选择模式：无");
+}
 
 OccViewerWidget::OccViewerWidget(QWidget* parent)
     : QWidget(parent)
@@ -90,6 +134,36 @@ int OccViewerWidget::displayedStepShapeCount() const
 QString OccViewerWidget::displayStatusText() const
 {
     return statusLabel_ == nullptr ? QString{} : statusLabel_->text();
+}
+
+void OccViewerWidget::setSelectionMode(ViewerSelectionMode mode)
+{
+    selectionMode_ = mode;
+    if (context_.IsNull()) {
+        return;
+    }
+
+    context_->Deactivate();
+    if (mode == ViewerSelectionMode::None) {
+        return;
+    }
+
+    const TopAbs_ShapeEnum occShape = toOccSelectionShape(mode);
+    if (occShape == TopAbs_SHAPE) {
+        context_->Activate(0, Standard_True);
+        return;
+    }
+    context_->Activate(AIS_Shape::SelectionMode(occShape), Standard_True);
+}
+
+ViewerSelectionMode OccViewerWidget::selectionMode() const
+{
+    return selectionMode_;
+}
+
+QString OccViewerWidget::selectionModeStatusText() const
+{
+    return viewerSelectionModeStatusText(selectionMode_);
 }
 
 QPaintEngine* OccViewerWidget::paintEngine() const

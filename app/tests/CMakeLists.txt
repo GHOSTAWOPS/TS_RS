@@ -308,6 +308,28 @@ target_link_libraries(tsrs_step_model_display_style_tests
 
 add_test(NAME tsrs_step_model_display_style_tests COMMAND $<TARGET_FILE:tsrs_step_model_display_style_tests>)
 
+if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
+    set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")
+    set(_tsrs_qt_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
+endif()
+
+add_executable(tsrs_occ_viewer_selection_tests
+    presentation/occ_viewer_selection_tests.cpp
+)
+
+target_link_libraries(tsrs_occ_viewer_selection_tests
+    PRIVATE
+        tsrs_ui
+)
+
+add_test(NAME tsrs_occ_viewer_selection_tests
+    COMMAND $<TARGET_FILE:tsrs_occ_viewer_selection_tests>)
+
+if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
+    set_tests_properties(tsrs_occ_viewer_selection_tests PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=minimal;QT_QPA_PLATFORM_PLUGIN_PATH=${_tsrs_qt_platform_plugin_path};PATH=${_tsrs_qt_runtime_path};$ENV{PATH}")
+endif()
+
 add_executable(tsrs_main_window_skeleton_tests
     ui/main_window_skeleton_tests.cpp
 )
@@ -320,8 +342,6 @@ target_link_libraries(tsrs_main_window_skeleton_tests
 add_test(NAME tsrs_main_window_skeleton_tests COMMAND $<TARGET_FILE:tsrs_main_window_skeleton_tests>)
 
 if(TSRS_QT_PLATFORM_PLUGIN_PATH OR TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH)
-    set(_tsrs_qt_platform_plugin_path "$<$<CONFIG:Debug>:${TSRS_QT_DEBUG_PLATFORM_PLUGIN_PATH}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_QT_PLATFORM_PLUGIN_PATH}>")
-    set(_tsrs_qt_runtime_path "$<$<CONFIG:Debug>:${TSRS_VCPKG_DEBUG_RUNTIME_BIN_DIR}>$<$<NOT:$<CONFIG:Debug>>:${TSRS_VCPKG_RUNTIME_BIN_DIR}>")
     set_tests_properties(tsrs_main_window_skeleton_tests PROPERTIES
         ENVIRONMENT "QT_QPA_PLATFORM=minimal;QT_QPA_PLATFORM_PLUGIN_PATH=${_tsrs_qt_platform_plugin_path};PATH=${_tsrs_qt_runtime_path};$ENV{PATH}")
 endif()

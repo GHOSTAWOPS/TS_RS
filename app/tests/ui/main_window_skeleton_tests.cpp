@@ -149,6 +149,21 @@ int main(int argc, char** argv)
                    "MainWindow must expose current STEP session id after import")) {
         return code;
     }
+    if (const int code =
+            expect(window.resolveFirstSelectionForSmoke(QStringLiteral("edge")),
+                   "MainWindow must resolve first edge selection through SelectionCommandService")) {
+        return code;
+    }
+    if (const int code =
+            expect(!window.currentSelectionStableId().isEmpty(),
+                   "MainWindow must expose selected stable binding id")) {
+        return code;
+    }
+    if (const int code =
+            expect(window.currentSelectionKind() == QStringLiteral("edge"),
+                   "MainWindow must expose selected binding kind")) {
+        return code;
+    }
 
     return 0;
 }

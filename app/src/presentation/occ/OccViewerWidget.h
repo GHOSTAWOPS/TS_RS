@@ -10,6 +10,8 @@
 #include <V3d_View.hxx>
 #include <V3d_Viewer.hxx>
 
+#include <string>
+
 class QLabel;
 class QPaintEngine;
 class QPaintEvent;
@@ -17,6 +19,22 @@ class QResizeEvent;
 class Aspect_DisplayConnection;
 
 namespace tsrs::presentation {
+
+enum class ViewerSelectionMode {
+    None = 0,
+    Vertex,
+    Edge,
+    Face,
+    Shape,
+};
+
+struct ViewerSelectionColors {
+    std::string selectedSemantic;
+    std::string highlightSemantic;
+};
+
+[[nodiscard]] ViewerSelectionColors defaultViewerSelectionColors();
+[[nodiscard]] QString viewerSelectionModeStatusText(ViewerSelectionMode mode);
 
 class OccViewerWidget final : public QWidget {
     Q_OBJECT
@@ -27,6 +45,9 @@ public:
     [[nodiscard]] bool displayStepModel(const StepDisplayModel& model);
     [[nodiscard]] int displayedStepShapeCount() const;
     [[nodiscard]] QString displayStatusText() const;
+    void setSelectionMode(ViewerSelectionMode mode);
+    [[nodiscard]] ViewerSelectionMode selectionMode() const;
+    [[nodiscard]] QString selectionModeStatusText() const;
 
 protected:
     QPaintEngine* paintEngine() const override;
@@ -41,6 +62,7 @@ private:
 
     QLabel* statusLabel_{nullptr};
     int displayedStepShapeCount_{0};
+    ViewerSelectionMode selectionMode_{ViewerSelectionMode::None};
     Handle(Aspect_DisplayConnection) displayConnection_;
     Handle(OpenGl_GraphicDriver) graphicDriver_;
     Handle(V3d_Viewer) viewer_;

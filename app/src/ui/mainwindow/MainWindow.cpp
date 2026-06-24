@@ -1,5 +1,6 @@
 #include "ui/mainwindow/MainWindow.h"
 
+#include "application/commands/SelectionCommandService.h"
 #include "application/commands/StepImportCommandService.h"
 #include "application/import/ImportedModelStore.h"
 #include "presentation/occ/OccViewerWidget.h"
@@ -35,6 +36,58 @@ QString MainWindow::currentStepSessionId() const
 std::size_t MainWindow::importedModelCount() const
 {
     return importedModelStore_ == nullptr ? 0 : importedModelStore_->size();
+}
+
+QString MainWindow::currentSelectionStableId() const
+{
+    return currentSelectionStableId_;
+}
+
+QString MainWindow::currentSelectionKind() const
+{
+    return currentSelectionKind_;
+}
+
+bool MainWindow::resolveFirstSelectionForSmoke(const QString& kind)
+{
+    if (importedModelStore_ == nullptr || currentStepSessionId_.isEmpty()) {
+        return false;
+    }
+
+    const application::StepSession* session =
+        importedModelStore_->findSession(currentStepSessionId_.toStdString());
+    if (session == nullptr) {
+        return false;
+    }
+
+    const std::vector<tsrs::step::TopologyBinding>* bindings = nullptr;
+    if (kind == QStringLiteral("edge")) {
+        bindings = &session->topologyBindings.edges();
+    } else if (kind == QStringLiteral("face")) {
+        bindings = &session->topologyBindings.faces();
+    } else if (kind == QStringLiteral("vertex")) {
+        bindings = &session->topologyBindings.vertices();
+    } else {
+        return false;
+    }
+
+    if (bindings == nullptr || bindings->empty()) {
+        return false;
+    }
+
+    const tsrs::step::TopologyBinding& binding = bindings->front();
+    const tsrs::step::TopologyBindingReference reference =
+        tsrs::step::makeBindingReference("smokeSelection", binding);
+    const application::SelectionCommandService service(&session->topologyBindings);
+    const application::SelectionCommandResult result =
+        service.resolveSelection({"smokeSelection", reference});
+
+    if (!result.ok) {
+        return false;
+    }
+    currentSelectionStableId_ = QString::fromStdString(result.bindingStableId);
+    currentSelectionKind_ = QString::fromStdString(result.kind);
+    return true;
 }
 
 void MainWindow::buildUi()

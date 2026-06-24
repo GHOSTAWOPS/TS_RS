@@ -28,6 +28,9 @@ public:
     [[nodiscard]] bool importStepFileForSmoke(const QString& stepPath);
     [[nodiscard]] QString currentStepSessionId() const;
     [[nodiscard]] std::size_t importedModelCount() const;
+    [[nodiscard]] bool resolveFirstSelectionForSmoke(const QString& kind);
+    [[nodiscard]] QString currentSelectionStableId() const;
+    [[nodiscard]] QString currentSelectionKind() const;
 
 private:
     [[nodiscard]] bool importStepFileInternal(const QString& stepPath, bool displayInViewer);
@@ -43,6 +46,8 @@ private:
     QTextEdit* messageLog_{nullptr};
     std::unique_ptr<application::ImportedModelStore> importedModelStore_;
     QString currentStepSessionId_;
+    QString currentSelectionStableId_;
+    QString currentSelectionKind_;
 };
 
 } // namespace tsrs::ui

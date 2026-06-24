@@ -29,14 +29,15 @@ TODO-020D 已完成：TopologyBindingRegistry endpoint canonicalization +
 geometryFingerprint fallback + low-confidence guard。
 TODO-020E 已完成：StepSession / ImportedModelStore 导入会话主链路。
 TODO-020G 已完成：CommandService skeleton guardrails。
+TODO-021 已完成：Viewer selection mode 和 stable binding smoke 出口。
 TODO-022 已完成：DetailPackageReader P0。
 TODO-023 已完成：DetailPackageWriter preserve-mode round-trip。
 TODO-024 代码侧已完成：极简 Detail 包和 GC-004 固定验证输入。
 
 P0A 最小真实闭环尚未放行。
 Detail 兼容尚未放行，TODO-024 只证明 minimal sheet format compatibility。
-当前 next：TODO-021 Viewer 选择系统。
-TODO-021 必须输出 stable binding id，不能把裸 AIS / TopoDS 交给 generator。
+当前 next：TODO-020F STEP import unit and scale policy。
+TODO-020F 必须在 RebarModel / Schedule / generator->Detail 链路前完成。
 ```
 
 关键入口：
