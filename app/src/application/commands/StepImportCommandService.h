@@ -1,6 +1,7 @@
 #pragma once
 
 #include "presentation/occ/StepDisplayModel.h"
+#include "step/StepUnitPolicy.h"
 
 #include <string>
 
@@ -23,6 +24,7 @@ struct StepImportCommandResult {
     std::string diagnostic;
     std::string sourcePath;
     std::string sessionId;
+    tsrs::step::StepLengthUnitPolicy unitPolicy;
     tsrs::presentation::StepDisplayModel displayModel;
 };
 

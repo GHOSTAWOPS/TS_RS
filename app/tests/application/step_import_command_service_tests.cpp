@@ -5,6 +5,7 @@
 #include <STEPControl_Writer.hxx>
 #include <TopoDS_Shape.hxx>
 
+#include <cmath>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -71,6 +72,15 @@ int expectSuccessfulDisplayModel()
     if (result.displayModel.sourcePath != fixture.string()) {
         return fail("successful STEP command must preserve source path");
     }
+    if (result.unitPolicy.internalLengthUnit != "m") {
+        return fail("successful STEP command must expose internal meter unit policy");
+    }
+    if (std::abs(result.unitPolicy.sourceToMeterScale - 0.001) > 1.0e-12) {
+        return fail("successful STEP command must expose source-to-meter scale");
+    }
+    if (result.unitPolicy.shapeCoordinatesScaledToInternalMeters) {
+        return fail("STEP command P0 must not claim display shape coordinates were scaled");
+    }
     if (!result.sessionId.empty()) {
         return fail("successful STEP command without store must not expose a session id");
     }
@@ -105,6 +115,14 @@ int expectImportCreatesStoredSessionWithTopologyBindings()
     }
     if (session->displayModel.sourcePath != result.displayModel.sourcePath) {
         return fail("stored session must preserve display model");
+    }
+    if (session->unitPolicy.normalizedSourceLengthUnit
+        != result.unitPolicy.normalizedSourceLengthUnit) {
+        return fail("stored session must preserve normalized source length unit");
+    }
+    if (std::abs(session->unitPolicy.sourceToMeterScale
+                 - result.unitPolicy.sourceToMeterScale) > 1.0e-12) {
+        return fail("stored session must preserve source-to-meter scale");
     }
     if (session->shapeStore.edges().empty()) {
         return fail("stored session must expose ShapeStore edges");

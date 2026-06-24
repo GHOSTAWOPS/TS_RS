@@ -24,7 +24,7 @@ Viewer 点 / 边 / 面选择已完成。
 SelectionCommandService 已完成。
 RebarModel / generator 可以接真实选择。
 TopologyBinding 已达到 production-ready graph binding。
-STEP 源单位策略已完成。
+STEP 源单位策略当时尚未完成，后续由 TODO-020F 处理。
 ```
 
 ## 修改范围

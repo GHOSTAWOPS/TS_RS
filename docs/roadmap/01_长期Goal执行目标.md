@@ -202,7 +202,7 @@ web-gpt-pro-review 固定要求：
 
 ```text
 正常情况下以 todo.csv 中唯一 status=next 的任务为准。
-当前 next：TODO-020F STEP import unit and scale policy。
+当前 next：TODO-025 RebarModel minimal transaction。
 TODO-024 已完成：
 v2_empty_groups minimal sheet 已通过旧图石 AutoCAD 插件导入按钮路径人工验证。
 done 只表示 minimal sheet DetailNN.stl protocol reached manual autoin pass。
@@ -222,6 +222,10 @@ TODO-021 已完成：
 ViewerSelectionMode 已接入 OccViewerWidget。
 MainWindow smoke selection 已通过 SelectionCommandService 输出 stable binding id。
 真实鼠标 picking 和视觉高亮截图仍作为后续风险。
+TODO-020F 已完成：
+StepLengthUnitPolicy 已接入 StepImportResult / StepImportCommandResult / StepSession。
+TS_RS 内部长度单位固定为 m。
+本轮没有缩放 OCCT shape 坐标。
 ```
 
 目标：
@@ -428,6 +432,7 @@ TODO-020E StepSession / ImportedModelStore 主链路
 TODO-020G CommandService skeleton guardrails
 TODO-021 Viewer 选择系统
 TODO-020F STEP import unit and scale policy
+TODO-025 RebarModel minimal transaction
 ```
 
 说明：
@@ -453,6 +458,7 @@ TODO-021 已通过 SelectionCommandService 输出 stable binding id。
 TODO-020F 不阻塞 TODO-021。
 它阻塞的是正式 RebarModel / Schedule / generator->Detail 链路，
 用于避免 STEP 源单位、TS_RS 内部单位、RebarSmart 参数单位和 Detail 输出单位混用。
+TODO-020F 已完成后，当前 next 进入 TODO-025。
 ```
 
 ## 用户可直接粘贴的 Goal 话术
@@ -482,7 +488,7 @@ Web GPT Pro 外部审查当前暂停，除非用户明确恢复。
 已取得的外部审查 Critical / Important 必须修复或写明技术反驳理由。
 
 当前从 todo.csv 中唯一 status=next 的节点开始。
-当前 next 为 TODO-020F。
+当前 next 为 TODO-025。
 TODO-024 已为 done，GC-004 状态为 manual_autoin_passed_v2。
 
 注意：TODO-024 done 不表示完整 Detail / StbGroup / StbTable / MaterialTable 兼容完成。

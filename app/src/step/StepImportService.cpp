@@ -3,6 +3,7 @@
 #include <IFSelect_ReturnStatus.hxx>
 #include <STEPControl_Reader.hxx>
 #include <Standard_Failure.hxx>
+#include <TColStd_SequenceOfAsciiString.hxx>
 #include <TopAbs_ShapeEnum.hxx>
 #include <TopExp_Explorer.hxx>
 #include <TopoDS_Shape.hxx>
@@ -41,6 +42,14 @@ std::string readStatusMessage(IFSelect_ReturnStatus status)
     return stream.str();
 }
 
+std::string firstUnit(const TColStd_SequenceOfAsciiString& units)
+{
+    if (units.IsEmpty()) {
+        return {};
+    }
+    return units.First().ToCString();
+}
+
 } // namespace
 
 namespace tsrs::step {
@@ -74,6 +83,12 @@ StepImportResult StepImportService::importFile(const std::string& stepPath) cons
         }
 
         result.rootCount = reader.NbRootsForTransfer();
+        TColStd_SequenceOfAsciiString lengthUnits;
+        TColStd_SequenceOfAsciiString angleUnits;
+        TColStd_SequenceOfAsciiString solidAngleUnits;
+        reader.FileUnits(lengthUnits, angleUnits, solidAngleUnits);
+        result.unitPolicy = makeStepLengthUnitPolicy(firstUnit(lengthUnits));
+
         const Standard_Integer transferred = reader.TransferRoots();
         result.transferOk = transferred > 0;
         if (!result.transferOk) {

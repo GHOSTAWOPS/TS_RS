@@ -24,6 +24,7 @@ StepImportCommandResult StepImportCommandService::importStep(
     result.diagnosticCode = imported.diagnosticCode;
     result.diagnostic = imported.diagnostic;
     result.sourcePath = imported.sourcePath;
+    result.unitPolicy = imported.unitPolicy;
 
     if (!imported.ok) {
         return result;
@@ -55,6 +56,7 @@ StepImportCommandResult StepImportCommandService::importStep(
 
     StepSession session;
     session.sourcePath = imported.sourcePath;
+    session.unitPolicy = imported.unitPolicy;
     session.displayModel = result.displayModel;
     session.shapeStore = shapeStore;
     session.topologyBindings = topologyBindings;

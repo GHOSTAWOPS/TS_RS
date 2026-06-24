@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <cmath>
 #include <string>
 
 namespace {
@@ -57,6 +58,61 @@ int expectSuccessImport()
     if (result.sourcePath != fixture.string()) {
         return fail("expected source path to be preserved");
     }
+    if (result.unitPolicy.internalLengthUnit != "m") {
+        return fail("expected TS_RS internal length unit to be meter");
+    }
+    if (std::abs(result.unitPolicy.sourceToMeterScale - 0.001) > 1.0e-12) {
+        return fail("expected OCCT-written STEP fixture to resolve to millimeter scale");
+    }
+    if (result.unitPolicy.shapeCoordinatesScaledToInternalMeters) {
+        return fail("STEP import P0 must not silently scale OCCT display/topology shape");
+    }
+    return 0;
+}
+
+int expectKnownLengthUnitPolicy()
+{
+    const tsrs::step::StepLengthUnitPolicy policy =
+        tsrs::step::makeStepLengthUnitPolicy("MM");
+
+    if (!policy.sourceLengthUnitDetected) {
+        return fail("known MM unit must be marked as detected");
+    }
+    if (!policy.sourceLengthUnitKnown) {
+        return fail("known MM unit must be marked as known");
+    }
+    if (policy.normalizedSourceLengthUnit != "mm") {
+        return fail("MM must normalize to mm");
+    }
+    if (std::abs(policy.sourceToMeterScale - 0.001) > 1.0e-12) {
+        return fail("MM must convert to meter scale 0.001");
+    }
+    if (policy.sourceToMeterScaleAssumed) {
+        return fail("known MM unit must not be marked as assumed");
+    }
+    return 0;
+}
+
+int expectAssumedLengthUnitPolicy()
+{
+    const tsrs::step::StepLengthUnitPolicy policy =
+        tsrs::step::makeStepLengthUnitPolicy("");
+
+    if (policy.sourceLengthUnitDetected) {
+        return fail("empty STEP length unit must not be marked as detected");
+    }
+    if (policy.sourceLengthUnitKnown) {
+        return fail("empty STEP length unit must not be marked as known");
+    }
+    if (policy.normalizedSourceLengthUnit != "mm") {
+        return fail("empty STEP length unit must assume mm");
+    }
+    if (std::abs(policy.sourceToMeterScale - 0.001) > 1.0e-12) {
+        return fail("assumed mm unit must convert to meter scale 0.001");
+    }
+    if (!policy.sourceToMeterScaleAssumed) {
+        return fail("empty STEP length unit must be marked as an assumption");
+    }
     return 0;
 }
 
@@ -100,6 +156,12 @@ int expectUnsupportedExtensionDiagnostic()
 
 int main()
 {
+    if (const int code = expectKnownLengthUnitPolicy()) {
+        return code;
+    }
+    if (const int code = expectAssumedLengthUnitPolicy()) {
+        return code;
+    }
     if (const int code = expectSuccessImport()) {
         return code;
     }

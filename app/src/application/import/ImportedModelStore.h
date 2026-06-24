@@ -3,6 +3,7 @@
 #include "presentation/occ/StepDisplayModel.h"
 #include "step/ShapeStore.h"
 #include "step/TopologyBindingRegistry.h"
+#include "step/StepUnitPolicy.h"
 
 #include <string>
 #include <vector>
@@ -12,6 +13,7 @@ namespace tsrs::application {
 struct StepSession {
     std::string sessionId;
     std::string sourcePath;
+    tsrs::step::StepLengthUnitPolicy unitPolicy;
     tsrs::presentation::StepDisplayModel displayModel;
     tsrs::step::ShapeStore shapeStore;
     tsrs::step::TopologyBindingRegistry topologyBindings;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "step/StepUnitPolicy.h"
+
 #include <TopoDS_Shape.hxx>
 
 #include <string>
@@ -28,6 +30,7 @@ struct StepImportResult {
     int edgeCount{0};
     int vertexCount{0};
     TopoDS_Shape rootShape;
+    StepLengthUnitPolicy unitPolicy;
 };
 
 class StepImportService final {
