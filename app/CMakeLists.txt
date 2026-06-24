@@ -145,6 +145,9 @@ target_link_libraries(tsrs_step
 )
 
 add_library(tsrs_application STATIC
+    src/application/commands/DetailPackageCommandService.cpp
+    src/application/commands/RebarCreationCommandService.cpp
+    src/application/commands/SelectionCommandService.cpp
     src/application/commands/StepImportCommandService.cpp
     src/application/import/ImportedModelStore.cpp
 )

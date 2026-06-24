@@ -205,6 +205,25 @@ if(TSRS_VCPKG_INSTALLED_DIR)
         ENVIRONMENT "PATH=${TSRS_VCPKG_INSTALLED_DIR}/bin;$ENV{PATH}")
 endif()
 
+add_executable(tsrs_command_service_guardrails_tests
+    application/command_service_guardrails_tests.cpp
+)
+
+target_link_libraries(tsrs_command_service_guardrails_tests
+    PRIVATE
+        tsrs_application
+)
+
+add_test(NAME tsrs_command_service_guardrails_tests
+    COMMAND $<TARGET_FILE:tsrs_command_service_guardrails_tests>)
+
+add_executable(tsrs_command_service_boundary_scan_tests
+    application/command_service_boundary_scan_tests.cpp
+)
+
+add_test(NAME tsrs_command_service_boundary_scan_tests
+    COMMAND $<TARGET_FILE:tsrs_command_service_boundary_scan_tests>)
+
 add_executable(tsrs_step_import_local_sample_probe_tests
     application/step_import_local_sample_probe_tests.cpp
 )
